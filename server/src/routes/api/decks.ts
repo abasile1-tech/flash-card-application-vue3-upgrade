@@ -180,4 +180,4 @@ router.delete("/:id/cards/:cardId", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

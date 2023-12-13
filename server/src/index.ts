@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import decks from './routes/api/decks';
 
 const app = express();
 
@@ -11,9 +12,6 @@ app.use(express.static(dist_folder));
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const decks = require("./routes/api/decks")
 
 app.use("/api/decks", decks);
 
