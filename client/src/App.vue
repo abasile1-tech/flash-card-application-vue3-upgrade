@@ -1,136 +1,30 @@
-<template>
-  <div id="app">
-    <router-view
-      v-on:emitDeck="emitDeck"
-      v-bind:emittedObject="objectToPass"
-      v-on:emitUser="emitUser"
-      v-bind:emittedUser="userToPass"
-    ></router-view>
-  </div>
-</template>
-
-<script>
-export default {
-  name: "App",
-  components: {},
-  data() {
-    return {
-      objectToPass: {},
-      userToPass: {},
-    };
-  },
-  methods: {
-    emitDeck(obj) {
-      this.objectToPass = obj;
-    },
-    emitUser(userObj) {
-      this.userToPass = userObj;
-    },
-  },
-};
+<script setup lang="ts">
+import HelloWorld from "./components/HelloWorld.vue";
 </script>
 
-<style>
-h1 {
-  font-size: xx-large;
-  margin-block-start: 0.3em;
-  margin-block-end: 0.2em;
-}
+<template>
+  <div>
+    <a href="https://vitejs.dev" target="_blank">
+      <img src="/vite.svg" class="logo" alt="Vite logo" />
+    </a>
+    <a href="https://vuejs.org/" target="_blank">
+      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
+    </a>
+  </div>
+  <HelloWorld msg="Vite + Vue" />
+</template>
 
-#app {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-  font-family: "Roboto", sans-serif;
-  font-size: large;
+<style scoped>
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
 }
-button,
-input {
-  font-family: "Roboto", sans-serif;
-  font-size: large;
-  margin: 0.3em;
-  border-radius: 8px;
-  border: none;
-  padding: 0.3em;
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
 }
-
-button {
-  color: #14075e;
-  background-color: #2ad592;
-}
-
-/* The snackbar - position it at the bottom and in the middle of the screen */
-.snackbar {
-  visibility: hidden; /* Hidden by default. Visible on click */
-  min-width: 250px; /* Set a default minimum width */
-  /*margin-left: -125px;*/ /* Divide value of min-width by 2 */
-  background-color: #333; /* Black background color */
-  color: #fff; /* White text color */
-  text-align: center; /* Centered text */
-  border-radius: 2px; /* Rounded borders */
-  padding: 16px; /* Padding */
-  position: fixed; /* Sit on top of the screen */
-  z-index: 1; /* Add a z-index if needed */
-  /*left: 50%;*/ /* Center the snackbar */
-  bottom: 30px; /* 30px from the bottom */
-  /* I had to add these next ones to fix the formatting */
-  left: 3px;
-  right: 3px;
-}
-
-/* Show the snackbar when clicking on a button (class added with JavaScript) */
-.snackbar.show {
-  visibility: visible; /* Show the snackbar */
-  /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
-	However, delay the fade out process for 2.5 seconds */
-  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
-}
-
-/* Animations to fade the snackbar in and out */
-@-webkit-keyframes fadein {
-  from {
-    bottom: 0;
-    opacity: 0;
-  }
-  to {
-    bottom: 30px;
-    opacity: 1;
-  }
-}
-
-@keyframes fadein {
-  from {
-    bottom: 0;
-    opacity: 0;
-  }
-  to {
-    bottom: 30px;
-    opacity: 1;
-  }
-}
-
-@-webkit-keyframes fadeout {
-  from {
-    bottom: 30px;
-    opacity: 1;
-  }
-  to {
-    bottom: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes fadeout {
-  from {
-    bottom: 30px;
-    opacity: 1;
-  }
-  to {
-    bottom: 0;
-    opacity: 0;
-  }
+.logo.vue:hover {
+  filter: drop-shadow(0 0 2em #42b883aa);
 }
 </style>
