@@ -12,7 +12,8 @@ app.use(express.static(dist_folder));
 app.use(bodyParser.json());
 app.use(cors());
 
-import decks from "./routes/api/decks";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const decks = require("./routes/api/decks")
 
 app.use("/api/decks", decks);
 
