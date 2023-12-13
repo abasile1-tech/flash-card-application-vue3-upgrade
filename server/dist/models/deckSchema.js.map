@@ -1,0 +1,1 @@
+{"version":3,"file":"deckSchema.js","sourceRoot":"","sources":["../../src/models/deckSchema.ts"],"names":[],"mappings":";;;AAAA,uCAAuC;AAEvC,6CAAwC;AAE3B,QAAA,UAAU,GAAG,IAAI,iBAAM,CAAC;IACnC,MAAM,EAAE,EAAC,IAAI,EAAE,gBAAK,CAAC,QAAQ,EAAE,QAAQ,EAAE,IAAI,EAAC;IAC9C,QAAQ,EAAE,MAAM;IAChB,KAAK,EAAE,CAAC,uBAAU,CAAC,IAAI,EAAwB;CAChD,CAAC,CAAC"}

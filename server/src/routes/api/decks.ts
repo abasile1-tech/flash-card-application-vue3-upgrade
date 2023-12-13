@@ -1,5 +1,5 @@
 import express from "express";
-import mongoose, {ConnectOptions, Types} from "mongoose";
+import mongoose, { Types} from "mongoose";
 
 const router = express.Router();
 
@@ -18,10 +18,7 @@ if (process.env.NODE_ENV !== "production") {
 
 const url = process.env.mongoURL;
 mongoose
-  .connect(url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  } as ConnectOptions)
+  .connect(url)
   .then(() => console.log("Database connected!"))
   .catch((err) => console.log(err));
 
