@@ -1,6 +1,6 @@
 import {Schema, Types} from "mongoose";
 
-import {cardSchema} from "./CardSchema";
+import {cardSchema} from "./cardSchema";
 
 export const deckSchema = new Schema({
   userId: {type: Types.ObjectId, required: true},
