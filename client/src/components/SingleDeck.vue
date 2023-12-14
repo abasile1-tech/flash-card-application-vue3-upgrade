@@ -120,7 +120,6 @@
       No, don't delete the card.
     </button>
 
-    <!-- https://vuejs.org/v2/guide/class-and-style.html#With-Components how to use the v-bind-->
     <div class="card" v-bind:class="{ flipped: this.cardSide === 'Front' }">
       <p class="cardPromptClass1" v-if="!addCardFront && !addCardBack">
         {{ cardSide }}
@@ -354,7 +353,6 @@
 </template>
 
 <script>
-// import Vue from "vue";
 import axios from "axios";
 const url = "/api/decks/";
 

@@ -142,17 +142,16 @@ export default {
   },
   directives: {
     "click-outside": {
-      bind: function (el, binding, vnode) {
-        el.clickOutsideEvent = function (event) {
-          // here I check that click was outside the el and his children
-          if (!(el == event.target || el.contains(event.target))) {
-            // and if it did, call method provided in attribute value
-            vnode.context[binding.expression](event);
+      mounted(el, binding) {
+        const onClick = (event) => {
+          if (!(el === event.target || el.contains(event.target))) {
+            binding.value(event);
           }
         };
-        document.body.addEventListener("click", el.clickOutsideEvent);
+        document.body.addEventListener("click", onClick);
+        el.clickOutsideEvent = onClick;
       },
-      unbind: function (el) {
+      unmounted(el) {
         document.body.removeEventListener("click", el.clickOutsideEvent);
       },
     },
