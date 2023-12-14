@@ -354,7 +354,7 @@
 </template>
 
 <script>
-//import Vue from "vue";
+// import Vue from "vue";
 import axios from "axios";
 const url = "/api/decks/";
 
@@ -392,27 +392,23 @@ export default {
       },
     },
   },
-  // https://vuejs.org/v2/guide/custom-directive.html
-  // allows the use of v-focus to have the cursor automatically go into the textbox
   directives: {
     focus: {
-      // directive definition
-      inserted: function (el) {
-        Vue.nextTick(() => el.focus());
+      mounted(el) {
+        el.focus();
       },
     },
     "click-outside": {
-      bind: function (el, binding, vnode) {
-        el.clickOutsideEvent = function (event) {
-          // here I check that click was outside the el and his children
-          if (!(el == event.target || el.contains(event.target))) {
-            // and if it did, call method provided in attribute value
-            vnode.context[binding.expression](event);
+      mounted(el, binding) {
+        const onClick = (event) => {
+          if (!(el === event.target || el.contains(event.target))) {
+            binding.value(event);
           }
         };
-        document.body.addEventListener("click", el.clickOutsideEvent);
+        document.body.addEventListener("click", onClick);
+        el.clickOutsideEvent = onClick;
       },
-      unbind: function (el) {
+      unmounted(el) {
         document.body.removeEventListener("click", el.clickOutsideEvent);
       },
     },
@@ -616,12 +612,10 @@ export default {
         console.log("Error with getVoices in populateVoiceList.\n");
       }
     },
-    shuffleVueArray(array) {
+    shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        const temp = array[i];
-        Vue.set(array, i, array[j]);
-        Vue.set(array, j, temp);
+        [array[i], array[j]] = [array[j], array[i]];
       }
     },
     focusOnCardFrontInput() {
@@ -1031,7 +1025,7 @@ export default {
         this.showSnackBar("snackbar1");
         return;
       }
-      this.shuffleVueArray(this.emittedObject.cards);
+      this.shuffleArray(this.emittedObject.cards);
       if (this.backModeOn) {
         this.cardSide = "Back";
         this.cardPrompt =
