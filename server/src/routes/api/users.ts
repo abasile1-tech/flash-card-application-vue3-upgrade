@@ -32,32 +32,23 @@ router.post("/login", async (req, res) => {
   const userNameToBeFound = req.body.userName;
   const myPlaintextPassword = req.body.userPassword;
 
-  const user = User.where({ userName: userNameToBeFound });
-  user.findOne(function (err, user) {
+  try {
+    const user = await User.findOne({ userName: userNameToBeFound });
     if (!user) {
       // The user couldn't be found
       res.sendStatus(202);
-      return;
+    } else {
+      const passwordMatch = await bcrypt.compare(myPlaintextPassword, user.userPassword);
+      if (passwordMatch) {
+        res.send(user);
+      } else {
+        res.sendStatus(205);
+      }
     }
-    if (user) {
-      bcrypt.compare(
-        myPlaintextPassword,
-        user.userPassword,
-        function (err, result) {
-          if (err) {
-            console.log("error comparing password:", err);
-          }
-          if (result) {
-            res.send(user);
-            return;
-          } else {
-            res.sendStatus(205);
-            return;
-          }
-        }
-      );
-    }
-  });
+  } catch (err) {
+    console.error("Error finding user:", err);
+    res.sendStatus(500); // Internal server error
+  }
 });
 
 // Get User after page reload

@@ -36,29 +36,26 @@ const User = mongoose_1.default.model("User", userSchema_1.userSchema, "users");
 router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userNameToBeFound = req.body.userName;
     const myPlaintextPassword = req.body.userPassword;
-    const user = User.where({ userName: userNameToBeFound });
-    user.findOne(function (err, user) {
+    try {
+        const user = yield User.findOne({ userName: userNameToBeFound });
         if (!user) {
             // The user couldn't be found
             res.sendStatus(202);
-            return;
         }
-        if (user) {
-            bcrypt_1.default.compare(myPlaintextPassword, user.userPassword, function (err, result) {
-                if (err) {
-                    console.log("error comparing password:", err);
-                }
-                if (result) {
-                    res.send(user);
-                    return;
-                }
-                else {
-                    res.sendStatus(205);
-                    return;
-                }
-            });
+        else {
+            const passwordMatch = yield bcrypt_1.default.compare(myPlaintextPassword, user.userPassword);
+            if (passwordMatch) {
+                res.send(user);
+            }
+            else {
+                res.sendStatus(205);
+            }
         }
-    });
+    }
+    catch (err) {
+        console.error("Error finding user:", err);
+        res.sendStatus(500); // Internal server error
+    }
 }));
 // Get User after page reload
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
