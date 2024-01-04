@@ -302,45 +302,27 @@ export default {
       );
     }
     if (this.emittedUser._id != undefined) {
-      console.log("emittedUser._id is not undefined");
       localStorage.setItem("emittedUser._id", this.emittedUser._id);
       if (this.emittedUser.userName == undefined) {
         const responseFromUsers = await axios.get(
           urlForUsers + this.emittedUser._id
         );
         this.$emit("emitUser", responseFromUsers.data);
-        // this.emittedUser = responseFromUsers.data;
       }
     }
     if (this.emittedUser._id == undefined) {
-      console.log("emittedUser._id is undefined");
-      // this.emittedUser._id = localStorage.getItem("emittedUser._id");
       const userIdFromLocalStorage = localStorage.getItem("emittedUser._id");
-      // const userWithUpdatedId = JSON.parse(JSON.stringify(this.emittedUser));
-      // userWithUpdatedId._id = userIdFromLocalStorage;
 
-      // this.$emit("emitUser", userWithUpdatedId);
-      console.log(
-        "here is the userIdFromLocalStorage we just got: ",
-        userIdFromLocalStorage
-      );
       if (userIdFromLocalStorage == undefined) {
-        console.log("should be logging out");
         this.returnToLoginPage();
         return;
       }
-      console.log("should be getting responseFromUsers");
       const responseFromUsers = await axios.get(
         urlForUsers + userIdFromLocalStorage
       );
-      console.log("should know emittedUser: ", this.emittedUser);
-      console.log("should know responseFromUsers: ", responseFromUsers);
-      // this.emittedUser = responseFromUsers.data;
       this.$emit("emitUser", responseFromUsers.data);
-      console.log("should know new emittedUser: ", this.emittedUser);
       const response = await axios.get(url + userIdFromLocalStorage);
       this.deckObjectList = response.data;
-      console.log("this.deckObjectList: ", this.deckObjectList);
       if (this.deckObjectList.length == 1) {
         this.onlyOneDeck = true;
       }
@@ -348,7 +330,6 @@ export default {
     }
     const response = await axios.get(url + this.emittedUser._id);
     this.deckObjectList = response.data;
-    console.log("this.deckObjectList: ", this.deckObjectList);
     if (this.deckObjectList.length == 1) {
       this.onlyOneDeck = true;
     }
