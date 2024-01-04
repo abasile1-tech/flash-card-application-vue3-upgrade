@@ -837,7 +837,11 @@ export default {
       if (response.status !== 201) {
         console.log("error: ", response);
       }
-      this.emittedObject.cards = response.data.cards;
+      // this.emittedObject.cards = response.data.cards;
+      const updatedDeck = this.updateAndEmitDeck({
+        cards: response.data.cards,
+      });
+
       this.addCardFront = false;
       this.addCardBack = false;
       if (this.backModeOn) {
@@ -847,17 +851,15 @@ export default {
       }
       this.cardFrontInput = "";
       this.cardBackInput = "";
-      if (this.emittedObject.cards.length - this.cardsListIndex > 1) {
+      if (updatedDeck.cards.length - this.cardsListIndex > 1) {
         this.cardsListIndex += 1;
       }
       if (this.backModeOn) {
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardBack;
+        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardBack;
       } else {
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardFront;
+        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardFront;
       }
-      this.cardId = this.emittedObject.cards[this.cardsListIndex]._id;
+      this.cardId = updatedDeck.cards[this.cardsListIndex]._id;
       this.numberSearchInput = this.cardsListIndex + 1;
     },
     async submitEditedCardFront() {
@@ -882,11 +884,25 @@ export default {
       if (response.status !== 201) {
         console.log("error: ", response);
       }
-      this.emittedObject.cards = response.data.cards;
+      // this.emittedObject.cards = response.data.cards;
+      const updatedDeck = this.updateAndEmitDeck({
+        cards: response.data.cards,
+      });
+
       this.editCardFront = false;
       this.editCardButtonPressed = false;
       this.cardFrontInput = "";
-      this.cardPrompt = this.emittedObject.cards[this.cardsListIndex].cardFront;
+      this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardFront;
+    },
+    updateAndEmitDeck({ _id = null, deckName = null, cards = null }) {
+      const updatedDeckObject = JSON.parse(JSON.stringify(this.emittedObject));
+      updatedDeckObject._id = _id === null ? updatedDeckObject._id : _id;
+      updatedDeckObject.deckName =
+        deckName === null ? updatedDeckObject.deckName : deckName;
+      updatedDeckObject.cards =
+        cards === null ? updatedDeckObject.cards : cards;
+      this.$emit("emitDeck", updatedDeckObject);
+      return updatedDeckObject;
     },
     async submitEditedCardBack() {
       if (this.cardBackInput == "") {
@@ -910,7 +926,9 @@ export default {
       if (response.status !== 201) {
         console.log("error: ", response);
       }
-      this.emittedObject.cards = response.data.cards;
+      // this.emittedObject.cards = response.data.cards;
+      this.updateCardsAndEmitDeck(response.data.cards);
+
       this.editCardBack = false;
       this.editCardButtonPressed = false;
       this.cardBackInput = "";
@@ -984,20 +1002,23 @@ export default {
       await axios.delete(
         url + this.emittedObject._id + "/cards/" + this.cardId
       );
-      this.emittedObject.cards.splice(this.cardsListIndex, 1);
+      // this.emittedObject.cards.splice(this.cardsListIndex, 1);
+      const updatedDeckObject = JSON.parse(JSON.stringify(this.emittedObject));
+      updatedDeckObject.cards.splice(this.cardsListIndex, 1);
+      this.$emit("emitDeck", updatedDeckObject);
 
-      if (this.emittedObject.cards.length - 1 >= 0) {
+      if (updatedDeckObject.cards.length - 1 >= 0) {
         this.cardsListIndex =
           this.cardsListIndex === 0 ? 0 : this.cardsListIndex - 1;
-        this.cardId = this.emittedObject.cards[this.cardsListIndex]._id;
+        this.cardId = updatedDeckObject.cards[this.cardsListIndex]._id;
         if (this.backModeOn) {
           this.cardSide = "Back";
           this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardBack;
+            updatedDeckObject.cards[this.cardsListIndex].cardBack;
         } else {
           this.cardSide = "Front";
           this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardFront;
+            updatedDeckObject.cards[this.cardsListIndex].cardFront;
         }
       } else {
         this.cardPrompt =
@@ -1037,22 +1058,22 @@ export default {
       this.deckIsShuffled = true;
     },
     async unShuffleDeck() {
-      // window.location.reload();
-      this.emittedObject._id = localStorage.getItem("emittedObject._id");
+      // this.emittedObject._id = localStorage.getItem("emittedObject._id");
+      const localStorageId = localStorage.getItem("emittedObject._id");
       const responseFromDecks = await axios.get(
-        url + "/deck/" + this.emittedObject._id
+        url + "/deck/" + localStorageId
       );
-      this.emittedObject = responseFromDecks.data;
+      // this.emittedObject = responseFromDecks.data;
+      const updatedDeck = this.updateAndEmitDeck(responseFromDecks.data);
+
       if (this.backModeOn) {
         this.cardSide = "Back";
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardBack;
+        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardBack;
       } else {
         this.cardSide = "Front";
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardFront;
+        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardFront;
       }
-      this.cardId = this.emittedObject.cards[this.cardsListIndex]._id;
+      this.cardId = updatedDeck.cards[this.cardsListIndex]._id;
       this.deckIsShuffled = false;
     },
     deleteDeckPressed() {
@@ -1075,7 +1096,9 @@ export default {
         this.showSnackBar("snackbar4");
         return;
       }
-      this.emittedObject.deckName = this.editDeckNameInput;
+      // this.emittedObject.deckName = this.editDeckNameInput;
+      this.updateAndEmitDeck({ deckName: this.editDeckNameInput });
+
       const response = await axios.put(
         url + this.emittedObject._id + "/deckName",
         { deckName: this.editDeckNameInput }
@@ -1139,28 +1162,25 @@ export default {
 
     if (this.emittedObject._id != undefined) {
       localStorage.setItem("emittedObject._id", this.emittedObject._id);
-      if (this.emittedObject.deckName == undefined) {
-        const responseFromDecks = await axios.get(
-          url + "/deck/" + this.emittedObject._id
-        );
-        this.emittedObject = responseFromDecks.data;
-      }
-    }
-    if (this.emittedObject._id == undefined) {
-      this.emittedObject._id = localStorage.getItem("emittedObject._id");
-      if (this.emittedObject._id == undefined) {
-        this.goBackToDecks();
-        return;
-      }
-      const responseFromDecks = await axios.get(
-        url + "/deck/" + this.emittedObject._id
-      );
-      this.emittedObject = responseFromDecks.data;
     }
 
-    if (this.emittedObject.cards.length != 0) {
-      this.cardPrompt = this.emittedObject.cards[0].cardFront;
-      this.cardId = this.emittedObject.cards[0]._id;
+    const objectId =
+      this.emittedObject._id == undefined
+        ? localStorage.getItem("emittedObject._id")
+        : this.emittedObject._id;
+
+    if (objectId == undefined) {
+      this.goBackToDecks();
+      return;
+    }
+
+    const responseFromDecks = await axios.get(url + "/deck/" + objectId);
+    // this.emittedObject = responseFromDecks.data;
+    const updatedDeck = this.updateAndEmitDeck(responseFromDecks.data);
+
+    if (updatedDeck.cards.length != 0) {
+      this.cardPrompt = updatedDeck.cards[0].cardFront;
+      this.cardId = updatedDeck.cards[0]._id;
     }
     this.deckIsShuffled = false;
   },

@@ -21,6 +21,7 @@ export default {
   },
   methods: {
     emitDeck(obj) {
+      console.log("obj: ", obj);
       this.objectToPass = obj;
     },
     emitUser(userObj) {
