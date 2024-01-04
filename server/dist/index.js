@@ -6,10 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
+const connect_history_api_fallback_1 = __importDefault(require("connect-history-api-fallback"));
 const decks_1 = __importDefault(require("./routes/api/decks"));
 const users_1 = __importDefault(require("./routes/api/users"));
 const app = (0, express_1.default)();
 const dist_folder = __dirname + "/../../client/dist/";
+app.use((0, connect_history_api_fallback_1.default)());
 app.use(express_1.default.static(dist_folder));
 // Middleware
 app.use(body_parser_1.default.json());
