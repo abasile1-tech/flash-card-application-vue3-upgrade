@@ -15,8 +15,32 @@ export default {
   components: {},
   data() {
     return {
-      objectToPass: {},
-      userToPass: {},
+      objectToPass: new Proxy(
+        {},
+        {
+          set(target, property, value, receiver) {
+            // Define your set trap logic here
+            console.log("It's a trap! #1");
+            // console.log(objectToPass);
+            return Reflect.set(target, property, value, receiver);
+          },
+        }
+      ),
+      userToPass: new Proxy(
+        {},
+        {
+          set(target, property, value, receiver) {
+            // Define your set trap logic here
+            console.log("It's a trap! #2");
+            console.log("target: ", target);
+            console.log("property: ", property);
+            console.log("value: ", value);
+            console.log("receiver: ", receiver);
+            // console.log(userToPass);
+            return Reflect.set(target, property, value, receiver);
+          },
+        }
+      ),
     };
   },
   methods: {
@@ -24,6 +48,7 @@ export default {
       this.objectToPass = obj;
     },
     emitUser(userObj) {
+      console.log("userObj: ", userObj);
       this.userToPass = userObj;
     },
   },
