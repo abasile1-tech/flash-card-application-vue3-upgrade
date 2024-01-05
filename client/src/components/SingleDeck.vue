@@ -378,7 +378,9 @@ try {
   console.log("Error with speechRecognition initialization.\n");
 }
 
-var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (typeof navigator !== "undefined") {
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
 
 export default {
   props: {
