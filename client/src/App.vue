@@ -9,12 +9,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-const emit = defineEmits<{
-  emitDeck: [obj: any];
-  emitUser: [userObj: any];
-}>();
-</script>
+<!-- https://vuejs.org/guide/typescript/composition-api#typescript-with-composition-api -->
+<script setup lang="ts"></script>
 
 <script lang="ts">
 export default {
@@ -27,12 +23,10 @@ export default {
     };
   },
   methods: {
-    emitDeck(obj: any) {
-      console.log("obj: ", obj);
+    emitDeck(obj) {
       this.objectToPass = obj;
     },
-    emitUser(userObj: any) {
-      console.log("userObj:", userObj);
+    emitUser(userObj) {
       this.userToPass = userObj;
     },
   },

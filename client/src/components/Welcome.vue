@@ -118,7 +118,9 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts"></script>
+
+<script lang="ts">
 import axios from "axios";
 const url = "/api/decks/";
 const urlForUsers = "/api/users/";
@@ -264,10 +266,15 @@ export default {
       // Get the snackbar DIV
       var x = document.getElementById(snackBarNum);
       // Add the "show" class to DIV
-      x.classList.add("show");
+      if (x != null) {
+        x.classList.add("show");
+      }
+
       // After 3 seconds, remove the show class from DIV
       setTimeout(function () {
-        x.classList.remove("show");
+        if (x != null) {
+          x.classList.remove("show");
+        }
       }, 3000);
     },
   },
