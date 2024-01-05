@@ -352,7 +352,9 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts"></script>
+
+<script lang="ts">
 import axios from "axios";
 const url = "/api/decks/";
 
@@ -360,6 +362,13 @@ try {
   var speechSynthesis = window.speechSynthesis;
 } catch (err) {
   console.log("Error with speechSynthesis initialization.\n");
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
 }
 
 try {
@@ -544,7 +553,7 @@ export default {
         return true;
       }
       similarityRequirement -= 0.1;
-      while (similarityRequirement > 0.3 && cardFound != true) {
+      while (similarityRequirement > 0.3) {
         return this.checkForMatchRecursive(similarityRequirement);
       }
 
@@ -1113,10 +1122,15 @@ export default {
       // Get the snackbar DIV
       var x = document.getElementById(snackBarNum);
       // Add the "show" class to DIV
-      x.classList.add("show");
+      if (x != null) {
+        x.classList.add("show");
+      }
+
       // After 3 seconds, remove the show class from DIV
       setTimeout(function () {
-        x.classList.remove("show");
+        if (x != null) {
+          x.classList.remove("show");
+        }
       }, 3000);
     },
   },

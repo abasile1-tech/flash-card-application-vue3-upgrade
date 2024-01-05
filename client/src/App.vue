@@ -9,7 +9,10 @@
   </div>
 </template>
 
-<script>
+<!-- https://vuejs.org/guide/typescript/composition-api#typescript-with-composition-api -->
+<script setup lang="ts"></script>
+
+<script lang="ts">
 export default {
   name: "App",
   components: {},
@@ -21,7 +24,6 @@ export default {
   },
   methods: {
     emitDeck(obj) {
-      console.log("obj: ", obj);
       this.objectToPass = obj;
     },
     emitUser(userObj) {
