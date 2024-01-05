@@ -5,7 +5,7 @@
 This code base creates a general-purpose flash card app. The tech stack is vue.js, node.js, express.js, and mongodb. Users can sign up for accounts in order to create decks with cards that can then be read aloud to them in the language of their choice. Note: the first two months of this project's code can be found at https://github.com/abasile1-tech/flash-card-application-early-days (at the time, I wanted a clean slate, so I moved my code into this current repository).
 
 ## Upgraded to Vue 3
-This project has been upgraded from Vue 2 to Vue 3. It has also being upgraded to use TypeScript and node version 20 instead of node version 16. You can view the original Vue 2 project (before the upgrade) at https://github.com/abasile1-tech/flash-card-application
+This project has been upgraded from Vue 2 to Vue 3. It has also been upgraded to use TypeScript and node version 20 instead of node version 16. You can view the original Vue 2 project (before the upgrade) at https://github.com/abasile1-tech/flash-card-application
 
 ## :arrow_right: Setting up
 
