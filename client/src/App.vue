@@ -9,7 +9,14 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+const emit = defineEmits<{
+  emitDeck: [obj: any];
+  emitUser: [userObj: any];
+}>();
+</script>
+
+<script lang="ts">
 export default {
   name: "App",
   components: {},
@@ -20,11 +27,12 @@ export default {
     };
   },
   methods: {
-    emitDeck(obj) {
+    emitDeck(obj: any) {
       console.log("obj: ", obj);
       this.objectToPass = obj;
     },
-    emitUser(userObj) {
+    emitUser(userObj: any) {
+      console.log("userObj:", userObj);
       this.userToPass = userObj;
     },
   },
