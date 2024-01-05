@@ -17,7 +17,8 @@
       </div>
       <div id="welcomeWords">
         <h1 id="welcomeName">
-          Welcome, {{ emittedUser.userName ? emittedUser.userName : "" }}
+          Welcome,
+          {{ this.emittedUser.userName ? this.emittedUser.userName : "" }}
         </h1>
       </div>
       <div
