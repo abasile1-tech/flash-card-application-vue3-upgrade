@@ -938,12 +938,14 @@ export default {
         console.log("error: ", response);
       }
       // this.emittedObject.cards = response.data.cards;
-      this.updateCardsAndEmitDeck(response.data.cards);
+      const updatedDeck = this.updateAndEmitDeck({
+        cards: response.data.cards,
+      });
 
       this.editCardBack = false;
       this.editCardButtonPressed = false;
       this.cardBackInput = "";
-      this.cardPrompt = this.emittedObject.cards[this.cardsListIndex].cardBack;
+      this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardBack;
     },
     updateCardIndex(indexToAdd) {
       if (this.emittedObject.cards?.length === 0) {
