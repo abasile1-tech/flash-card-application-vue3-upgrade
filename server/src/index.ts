@@ -7,7 +7,7 @@ import users from './routes/api/users';
 
 const app = express();
 
-const dist_folder = __dirname + "/../../client/dist/";
+const dist_folder = __dirname + (process.env.clientDIST ||  "/../client_dist/");
 
 app.use(history());
 app.use(express.static(dist_folder));
