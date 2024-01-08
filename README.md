@@ -68,7 +68,7 @@ There is also a Cypress testing suite in the client folder. **cd** into the clie
 - :white_check_mark: I converted the project to TypeScript for better type-safety when compared with Vanilla JavaScript
 - :white_check_mark: I migrated the project from Vue 2 to Vue 3
 - :white_check_mark: I upgraded from Node 16 to Node 20
-- :white_check_mark: I upgraded from Jest unit testing framework to the Vitest unit testing framework
+- :white_check_mark: I upgraded from the Jest unit testing framework to the Vitest unit testing framework
 
 ## Future Work
 
