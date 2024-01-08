@@ -15,6 +15,7 @@ This project has been upgraded from Vue 2 to Vue 3. It has also been upgraded to
 
 ```
 mongoURL='mongodb://localhost:27017/flash-card-app'
+clientDIST = "/../../client/dist/"
 ```
 
 - and set up your mongodb to use that url.
