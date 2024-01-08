@@ -18,7 +18,7 @@ mongoURL='mongodb://localhost:27017/flash-card-app'
 ```
 
 - and set up your mongodb to use that url.
-- Once those are updated **cd** into the client and run `npm run build`. This will generate a dist folder to be served. Then open a new terminal tab and **cd** to the server folder and run `npm run start`. Open localhost:5000 in web browser.
+- Once those are updated **cd** into the client and run `npm install` and `npm run build`. This will generate a dist folder to be served. Then open a new terminal tab and **cd** to the server folder and run `npm install` and `npm run start`. Open localhost:5000 in web browser.
 - Please note that this project uses Node version 20.10.0 (use nvm, the node version manager to control which version of node you are using).
 
 ## Vitest Testing (Unit Tests)
