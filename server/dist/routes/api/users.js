@@ -65,37 +65,35 @@ router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userNameToBeFound = req.body.userName;
-        const user = User.where({ userName: userNameToBeFound });
-        user.findOne(function (err, user) {
-            if (!user) {
-                // The userName doesn't yet exist
-                const user = new User();
-                user.userName = req.body.userName;
-                const myPlaintextPassword = req.body.userPassword;
-                bcrypt_1.default.hash(myPlaintextPassword, saltRounds, function (err, hash) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        if (err) {
-                            console.log("error hashing password:", err);
-                        }
-                        user.userPassword = hash;
-                        try {
-                            yield user.save();
-                            res.status(201).json(user);
-                        }
-                        catch (err) {
-                            console.log(err);
-                            res.status(500).send("Error saving the user.");
-                        }
-                    });
+        const user = yield User.findOne({ userName: userNameToBeFound });
+        if (!user) {
+            // The userName doesn't yet exist
+            const user = new User();
+            user.userName = req.body.userName;
+            const myPlaintextPassword = req.body.userPassword;
+            bcrypt_1.default.hash(myPlaintextPassword, saltRounds, function (err, hash) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (err) {
+                        console.log("error hashing password:", err);
+                    }
+                    user.userPassword = hash;
+                    try {
+                        yield user.save();
+                        res.status(201).json(user);
+                    }
+                    catch (err) {
+                        console.log(err);
+                        res.status(500).send("Error saving the user.");
+                    }
                 });
-                return;
-            }
-            if (user) {
-                // The userName is already taken
-                res.sendStatus(205);
-                return;
-            }
-        });
+            });
+            return;
+        }
+        if (user) {
+            // The userName is already taken
+            res.sendStatus(205);
+            return;
+        }
     }
     catch (err) {
         console.log(err);

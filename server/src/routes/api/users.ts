@@ -60,42 +60,41 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const userNameToBeFound = req.body.userName;
-    const user = User.where({ userName: userNameToBeFound });
-    user.findOne(function (err, user) {
-      if (!user) {
-        // The userName doesn't yet exist
-        const user = new User();
-        user.userName = req.body.userName;
-        const myPlaintextPassword = req.body.userPassword;
-        bcrypt.hash(
-          myPlaintextPassword,
-          saltRounds,
-          async function (err, hash) {
-            if (err) {
-              console.log("error hashing password:", err);
-            }
-            user.userPassword = hash;
-            try {
-              await user.save(); 
-              res.status(201).json(user);
-            } catch (err) {
-              console.log(err);
-              res.status(500).send("Error saving the user.");
-            }
+    const user = await User.findOne({ userName: userNameToBeFound });
+    if (!user) {
+      // The userName doesn't yet exist
+      const user = new User();
+      user.userName = req.body.userName;
+      const myPlaintextPassword = req.body.userPassword;
+      bcrypt.hash(
+        myPlaintextPassword,
+        saltRounds,
+        async function (err, hash) {
+          if (err) {
+            console.log("error hashing password:", err);
           }
-        );
-        return;
-      }
-      if (user) {
-        // The userName is already taken
-        res.sendStatus(205);
-        return;
-      }
-    });
+          user.userPassword = hash;
+          try {
+            await user.save(); 
+            res.status(201).json(user);
+          } catch (err) {
+            console.log(err);
+            res.status(500).send("Error saving the user.");
+          }
+        }
+      );
+      return;
+    }
+    if (user) {
+      // The userName is already taken
+      res.sendStatus(205);
+      return;
+    }
   } catch (err) {
     console.log(err);
   }
 });
+
 
 // Delete User
 router.delete("/:id", async (req, res) => {
