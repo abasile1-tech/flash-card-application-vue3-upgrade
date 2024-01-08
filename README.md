@@ -21,9 +21,9 @@ mongoURL='mongodb://localhost:27017/flash-card-app'
 - Once those are updated **cd** into the client and run `npm run build`. Then run `npm run serve` to run the client. Then open a new terminal tab and **cd** to the server folder and run `npm run dev`. Open localhost:5000 in web browser.
 - Please note that this project uses Node version 16.20.2 (use nvm, the node version manager to control which version of node you are using).
 
-## Jest Testing (Unit Tests)
+## Vitest Testing (Unit Tests)
 
-There is a Jest unit testing suite in the client folder. **cd** into the client folder and run `npm run test` to run the Jest tests.
+There is a Vitest unit testing suite in the client folder. **cd** into the client folder and run `npm run test` to run the Vitest tests.
 
 ## Cypress Testing (End-to-End and Integration Testing)
 
