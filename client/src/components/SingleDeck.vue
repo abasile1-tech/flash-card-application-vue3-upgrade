@@ -132,19 +132,19 @@
       </p>
       <p
         class="cardPromptClass1"
-        v-if="emittedObject.cards.length == 0 && (addCardFront || addCardBack)"
+        v-if="emittedObject.cards?.length == 0 && (addCardFront || addCardBack)"
       >
         New {{ cardSide }} at position 1
       </p>
       <p
         class="cardPromptClass1"
-        v-if="emittedObject.cards.length == 1 && (addCardFront || addCardBack)"
+        v-if="emittedObject.cards?.length == 1 && (addCardFront || addCardBack)"
       >
         New {{ cardSide }} at position 2
       </p>
       <p
         class="cardPromptClass1"
-        v-if="emittedObject.cards.length > 1 && (addCardFront || addCardBack)"
+        v-if="emittedObject.cards?.length > 1 && (addCardFront || addCardBack)"
       >
         New {{ cardSide }} at position {{ cardsListIndex + 2 }}
       </p>
@@ -569,7 +569,7 @@ export default {
       similarityRequirement
     ) {
       let searchProperty = sideToSearch === "Back" ? "cardBack" : "cardFront";
-      for (let i = 0; i < this.emittedObject.cards.length; i++) {
+      for (let i = 0; i < this.emittedObject.cards?.length; i++) {
         if (
           this.calculateSimilarity(
             this.emittedObject.cards[i][searchProperty],
@@ -596,7 +596,7 @@ export default {
 
     async numberSearch() {
       const numberInput = parseInt(this.numberSearchInput);
-      if (numberInput > 0 && numberInput <= this.emittedObject.cards.length) {
+      if (numberInput > 0 && numberInput <= this.emittedObject.cards?.length) {
         this.cardsListIndex = numberInput - 1;
         if (this.backModeOn) {
           this.cardSide = "Back";
@@ -746,7 +746,7 @@ export default {
     },
     flipCard() {
       if (
-        this.emittedObject.cards.length === 0 &&
+        this.emittedObject.cards?.length === 0 &&
         !this.addCardBack &&
         !this.addCardFront
       ) {
@@ -796,7 +796,7 @@ export default {
       }
       this.cardFrontInput = "";
       this.cardBackInput = "";
-      if (this.emittedObject.cards.length === 0) {
+      if (this.emittedObject.cards?.length === 0) {
         return;
       } else {
         if (this.backModeOn) {
@@ -821,7 +821,7 @@ export default {
       }
       this.cardFrontInput = "";
       this.cardBackInput = "";
-      if (this.emittedObject.cards.length === 0) {
+      if (this.emittedObject.cards?.length === 0) {
         return;
       } else {
         if (this.backModeOn) {
@@ -862,7 +862,7 @@ export default {
       }
       this.cardFrontInput = "";
       this.cardBackInput = "";
-      if (updatedDeck.cards.length - this.cardsListIndex > 1) {
+      if (updatedDeck.cards?.length - this.cardsListIndex > 1) {
         this.cardsListIndex += 1;
       }
       if (this.backModeOn) {
@@ -946,19 +946,19 @@ export default {
       this.cardPrompt = this.emittedObject.cards[this.cardsListIndex].cardBack;
     },
     updateCardIndex(indexToAdd) {
-      if (this.emittedObject.cards.length === 0) {
+      if (this.emittedObject.cards?.length === 0) {
         this.showSnackBar("snackbar3");
         return;
       }
-      if (this.emittedObject.cards.length === 1) {
+      if (this.emittedObject.cards?.length === 1) {
         this.showSnackBar("snackbar1");
         return;
       }
       if (indexToAdd + this.cardsListIndex < 0) {
-        this.cardsListIndex = this.emittedObject.cards.length - 1;
+        this.cardsListIndex = this.emittedObject.cards?.length - 1;
       } else if (
         indexToAdd + this.cardsListIndex >
-        this.emittedObject.cards.length - 1
+        this.emittedObject.cards?.length - 1
       ) {
         this.cardsListIndex = 0;
       } else {
@@ -981,7 +981,7 @@ export default {
         this.showSnackBar("snackbar9");
         return;
       }
-      if (this.emittedObject.cards.length === 0) {
+      if (this.emittedObject.cards?.length === 0) {
         this.showSnackBar("snackbar8");
         return;
       } else {
@@ -1000,7 +1000,7 @@ export default {
         this.showSnackBar("snackbar9");
         return;
       }
-      if (this.emittedObject.cards.length === 0) {
+      if (this.emittedObject.cards?.length === 0) {
         this.showSnackBar("snackbar6");
         return;
       } else {
@@ -1018,7 +1018,7 @@ export default {
       updatedDeckObject.cards.splice(this.cardsListIndex, 1);
       this.$emit("emitDeck", updatedDeckObject);
 
-      if (updatedDeckObject.cards.length - 1 >= 0) {
+      if (updatedDeckObject.cards?.length - 1 >= 0) {
         this.cardsListIndex =
           this.cardsListIndex === 0 ? 0 : this.cardsListIndex - 1;
         this.cardId = updatedDeckObject.cards[this.cardsListIndex]._id;
@@ -1047,11 +1047,11 @@ export default {
     },
     // because I am shuffling the emittedObject.cards array, the shuffling is only temporary. The database is not changed in any way.
     shuffleDeck() {
-      if (this.emittedObject.cards.length === 0) {
+      if (this.emittedObject.cards?.length === 0) {
         this.showSnackBar("snackbar3");
         return;
       }
-      if (this.emittedObject.cards.length === 1) {
+      if (this.emittedObject.cards?.length === 1) {
         this.showSnackBar("snackbar1");
         return;
       }
@@ -1194,9 +1194,11 @@ export default {
     // this.emittedObject = responseFromDecks.data;
     const updatedDeck = this.updateAndEmitDeck(responseFromDecks.data);
 
-    if (updatedDeck.cards.length != 0) {
-      this.cardPrompt = updatedDeck.cards[0].cardFront;
-      this.cardId = updatedDeck.cards[0]._id;
+    if (updatedDeck.cards != undefined && updatedDeck.cards != null) {
+      if (updatedDeck.cards?.length != 0) {
+        this.cardPrompt = updatedDeck.cards[0].cardFront;
+        this.cardId = updatedDeck.cards[0]._id;
+      }
     }
     this.deckIsShuffled = false;
   },
