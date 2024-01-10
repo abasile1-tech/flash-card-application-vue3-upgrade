@@ -2,7 +2,13 @@
 
 ## Description
 
-This code base creates a general-purpose flash card app. The tech stack is vue.js, node.js, express.js, and mongodb. Users can sign up for accounts in order to create decks with cards that can then be read aloud to them in the language of their choice. Note: the first two months of this project's code can be found at https://github.com/abasile1-tech/flash-card-application-early-days (at the time, I wanted a clean slate, so I moved my code into this current repository).
+This code base creates a general-purpose flash card app. The tech stack is Vue 3, Node, TypeScript, Vite, Axios, Express, Mongoose, and MongoDB. Testing suites used include Vitest and Cypress. Users can sign up for accounts (with password encryption using Bcrypt) in order to create decks with cards that can then be read aloud to them in the language of their choice. Users can also test their pronunciation by speaking the contents of the card and receiving assessment feedback on how well their pronunciation matched the native speaker's pronunciation.
+
+## Designed for Both Mobile and Desktop
+Using responsive styling, the webpage looks great on both large and small screens.
+
+## A Note About the Project's Early Days
+Note: the first two months of this project's code can be found at https://github.com/abasile1-tech/flash-card-application-early-days (at the time, I wanted a clean slate, so I moved my code into this current repository).
 
 ## Upgraded to Vue 3
 This project has been upgraded from Vue 2 to Vue 3. It has also been upgraded to use TypeScript and node version 20 instead of node version 16. You can view the original Vue 2 project (before the upgrade) at https://github.com/abasile1-tech/flash-card-application
