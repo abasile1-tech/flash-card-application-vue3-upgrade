@@ -115,22 +115,22 @@
   </div>
 </template>
 
-<!-- <script setup lang="ts"></script> -->
+<script setup lang="ts"></script>
 
 <script lang="ts">
-import axios from 'axios';
-const url = '/api/users/';
+import axios from "axios";
+const url = "/api/users/";
 
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
   components: {},
   props: {},
   data() {
     return {
-      userNameInput: '',
-      passwordInput: '',
-      userNameInputNew: '',
-      passwordInputNew: '',
+      userNameInput: "",
+      passwordInput: "",
+      userNameInputNew: "",
+      passwordInputNew: "",
       showLogin: true,
       boxAcknowledged: false,
     };
@@ -146,35 +146,35 @@ export default {
       this.showLogin = false;
     },
     async logIn() {
-      if (this.userNameInput == '' || this.passwordInput == '') {
-        this.showSnackBar('snackbar4');
+      if (this.userNameInput == "" || this.passwordInput == "") {
+        this.showSnackBar("snackbar4");
         this.clearLogInInputs();
         return;
       }
-      const responseFromUsers = await axios.post(url + '/login', {
+      const responseFromUsers = await axios.post(url + "/login", {
         userName: this.userNameInput,
         userPassword: this.passwordInput,
       });
       const user = responseFromUsers.data;
 
       if (responseFromUsers.status == 205) {
-        this.showSnackBar('snackbar1');
+        this.showSnackBar("snackbar1");
         this.clearLogInInputs();
         return;
       }
       if (responseFromUsers.status == 202) {
-        this.showSnackBar('snackbar3');
+        this.showSnackBar("snackbar3");
         this.clearLogInInputs();
         return;
       }
 
-      this.$emit('emitUser', user);
+      this.$emit("emitUser", user);
       this.clearLogInInputs();
-      this.$router.push({ path: '/welcome/' });
+      this.$router.push({ path: "/welcome/" });
     },
     async signUp() {
-      if (this.userNameInputNew == '' || this.passwordInputNew == '') {
-        this.showSnackBar('snackbar4');
+      if (this.userNameInputNew == "" || this.passwordInputNew == "") {
+        this.showSnackBar("snackbar4");
         this.clearSignUpInputs();
         return;
       }
@@ -183,36 +183,36 @@ export default {
         userPassword: this.passwordInputNew,
       });
       if (response.status == 205) {
-        this.showSnackBar('snackbar2');
+        this.showSnackBar("snackbar2");
         this.clearSignUpInputs();
         return;
       }
       const userObj = response.data;
       this.clearSignUpInputs();
-      this.$emit('emitUser', userObj);
-      this.$router.push({ path: '/welcome/' });
+      this.$emit("emitUser", userObj);
+      this.$router.push({ path: "/welcome/" });
     },
-    showSnackBar(snackBarNum: string) {
+    showSnackBar(snackBarNum) {
       // Get the snackbar DIV
-      let snackBarElement = document.getElementById(snackBarNum);
+      var x = document.getElementById(snackBarNum);
       // Add the "show" class to DIV
-      if (snackBarElement != null) {
-        snackBarElement.classList.add('show');
+      if (x != null) {
+        x.classList.add("show");
       }
       // After 3 seconds, remove the show class from DIV
       setTimeout(function () {
-        if (snackBarElement != null) {
-          snackBarElement.classList.remove('show');
+        if (x != null) {
+          x.classList.remove("show");
         }
       }, 3000);
     },
     clearLogInInputs() {
-      this.userNameInput = '';
-      this.passwordInput = '';
+      this.userNameInput = "";
+      this.passwordInput = "";
     },
     clearSignUpInputs() {
-      this.userNameInputNew = '';
-      this.passwordInputNew = '';
+      this.userNameInputNew = "";
+      this.passwordInputNew = "";
     },
   },
 };

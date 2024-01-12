@@ -1,15 +1,17 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import express from "express";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-import { userSchema } from '../../models/userSchema';
+import {userSchema} from "../../models/userSchema";
 
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 const saltRounds = 10;
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const dotenv = require("dotenv");
+
   const result = dotenv.config();
 
   if (result.error) {
@@ -20,13 +22,13 @@ if (process.env.NODE_ENV !== 'production') {
 const url = process.env.mongoURL;
 mongoose
   .connect(url)
-  .then(() => console.log('Database connected!'))
+  .then(() => console.log("Database connected!"))
   .catch((err) => console.log(err));
 
-const User = mongoose.model('User', userSchema, 'users');
+const User = mongoose.model("User", userSchema, "users");
 
 // Get Users
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   const userNameToBeFound = req.body.userName;
   const myPlaintextPassword = req.body.userPassword;
 
@@ -36,10 +38,7 @@ router.post('/login', async (req, res) => {
       // The user couldn't be found
       res.sendStatus(202);
     } else {
-      const passwordMatch = await bcrypt.compare(
-        myPlaintextPassword,
-        user.userPassword,
-      );
+      const passwordMatch = await bcrypt.compare(myPlaintextPassword, user.userPassword);
       if (passwordMatch) {
         res.send(user);
       } else {
@@ -47,20 +46,18 @@ router.post('/login', async (req, res) => {
       }
     }
   } catch (err) {
-    console.error('Error finding user:', err);
+    console.error("Error finding user:", err);
     res.sendStatus(500); // Internal server error
   }
 });
 
 // Get User after page reload
-router.get('/:id', async (req, res) => {
-  res.send(
-    await User.findOne({ _id: new mongoose.Types.ObjectId(req.params.id) }),
-  );
+router.get("/:id", async (req, res) => {
+  res.send(await User.findOne({ _id: new mongoose.Types.ObjectId(req.params.id) }));
 });
 
 // Add User
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const userNameToBeFound = req.body.userName;
     const user = await User.findOne({ userName: userNameToBeFound });
@@ -69,19 +66,23 @@ router.post('/', async (req, res) => {
       const user = new User();
       user.userName = req.body.userName;
       const myPlaintextPassword = req.body.userPassword;
-      bcrypt.hash(myPlaintextPassword, saltRounds, async function (err, hash) {
-        if (err) {
-          console.log('error hashing password:', err);
+      bcrypt.hash(
+        myPlaintextPassword,
+        saltRounds,
+        async function (err, hash) {
+          if (err) {
+            console.log("error hashing password:", err);
+          }
+          user.userPassword = hash;
+          try {
+            await user.save(); 
+            res.status(201).json(user);
+          } catch (err) {
+            console.log(err);
+            res.status(500).send("Error saving the user.");
+          }
         }
-        user.userPassword = hash;
-        try {
-          await user.save();
-          res.status(201).json(user);
-        } catch (err) {
-          console.log(err);
-          res.status(500).send('Error saving the user.');
-        }
-      });
+      );
       return;
     }
     if (user) {
@@ -94,8 +95,9 @@ router.post('/', async (req, res) => {
   }
 });
 
+
 // Delete User
-router.delete('/:id', async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.status(200).send();
