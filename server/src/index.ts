@@ -7,7 +7,7 @@ import users from './routes/api/users';
 
 const app = express();
 
-const dist_folder = __dirname + (process.env.clientDIST ||  "/../client_dist/");
+const dist_folder = __dirname + (process.env.clientDIST || '/../client_dist/');
 
 app.use(history());
 app.use(express.static(dist_folder));
@@ -16,11 +16,11 @@ app.use(express.static(dist_folder));
 app.use(bodyParser.json());
 app.use(cors());
 
-app.use("/api/decks", decks);
-app.use("/api/users", users);
+app.use('/api/decks', decks);
+app.use('/api/users', users);
 
 app.get('/', (req, res) => {
-  res.sendFile(dist_folder + "index.html");
+  res.sendFile(dist_folder + 'index.html');
 });
 
 const port = process.env.PORT || 5000;
