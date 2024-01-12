@@ -10,11 +10,11 @@
 </template>
 
 <!-- https://vuejs.org/guide/typescript/composition-api#typescript-with-composition-api -->
-<script setup lang="ts"></script>
+<!-- <script setup lang="ts"></script> -->
 
 <script lang="ts">
 export default {
-  name: "App",
+  name: 'App',
   components: {},
   data() {
     return {
@@ -23,10 +23,10 @@ export default {
     };
   },
   methods: {
-    emitDeck(obj) {
+    emitDeck(obj: any) {
       this.objectToPass = obj;
     },
-    emitUser(userObj) {
+    emitUser(userObj: any) {
       this.userToPass = userObj;
     },
   },
@@ -46,12 +46,12 @@ h1 {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
-  font-family: "Roboto", sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: large;
 }
 button,
 input {
-  font-family: "Roboto", sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: large;
   margin: 0.3em;
   border-radius: 8px;

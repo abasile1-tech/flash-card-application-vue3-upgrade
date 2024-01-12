@@ -18,7 +18,7 @@
       <div id="welcomeWords">
         <h1 id="welcomeName">
           Welcome,
-          {{ this.emittedUser.userName ? this.emittedUser.userName : "" }}
+          {{ emittedUser.userName ? emittedUser.userName : '' }}
         </h1>
       </div>
       <div
@@ -72,10 +72,10 @@
     <br v-if="deleteAccountButtonPressed || deleteAccountButtonPressedTwice" />
 
     <p class="displayInline" v-if="onlyOneDeck">
-      You currently have {{ this.deckObjectList.length }} deck in your library.
+      You currently have {{ deckObjectList.length }} deck in your library.
     </p>
     <p class="displayInline" v-else>
-      You currently have {{ this.deckObjectList.length }} decks in your library.
+      You currently have {{ deckObjectList.length }} decks in your library.
     </p>
     <br /><br />
     <p class="displayInline">
@@ -97,8 +97,8 @@
     <div class="flexContainer">
       <div
         id="notebookWhole"
-        :key="deck"
-        v-for="(deck, index) in this.deckObjectList"
+        :key="index"
+        v-for="(deck, index) in deckObjectList"
       >
         <img src="../assets/notebookRingLeft.png" alt="" />
         <div
@@ -119,62 +119,81 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<!-- <script setup lang="ts"></script> -->
 
 <script lang="ts">
-import axios from "axios";
-const url = "/api/decks/";
-const urlForUsers = "/api/users/";
+import axios from 'axios';
+const url = '/api/decks/';
+const urlForUsers = '/api/users/';
+
+interface Card {
+  cardFront: string;
+  cardBack: string;
+}
+
+interface Deck {
+  userId: string;
+  deckName: string;
+  cards: Card[];
+}
+
+interface Data {
+  deckInput: string;
+  deckObjectList: Deck[];
+  onlyOneDeck: boolean;
+  hamburgerClicked: boolean;
+  darkModeOn: boolean;
+  deleteAccountButtonPressed: boolean;
+  deleteAccountButtonPressedTwice: boolean;
+  colorList: string[];
+}
 
 export default {
-  name: "Welcome",
+  name: 'Welcome',
   components: {},
   props: {
     emittedUser: {
-      Type: Object,
+      type: Object,
       required: true,
-      _id: {
-        type: String,
-        required: true,
-      },
-      userName: {
-        type: String,
-        required: true,
+      validator: (value: any) => {
+        return (
+          typeof value._id === 'string' && typeof value.userName === 'string'
+        );
       },
     },
   },
   directives: {
-    "click-outside": {
+    'click-outside': {
       mounted(el, binding) {
-        const onClick = (event) => {
+        const onClick = (event: { target: any }) => {
           if (!(el === event.target || el.contains(event.target))) {
             binding.value(event);
           }
         };
-        document.body.addEventListener("click", onClick);
+        document.body.addEventListener('click', onClick);
         el.clickOutsideEvent = onClick;
       },
       unmounted(el) {
-        document.body.removeEventListener("click", el.clickOutsideEvent);
+        document.body.removeEventListener('click', el.clickOutsideEvent);
       },
     },
   },
-  data() {
+  data(): Data {
     return {
-      deckInput: "",
+      deckInput: '',
       deckObjectList: [],
       onlyOneDeck: false,
       hamburgerClicked: false,
       darkModeOn: false,
       deleteAccountButtonPressed: false,
       deleteAccountButtonPressedTwice: false,
-      colorList: ["#7660D6", "#6EEBE4", "#9DD66D", "#FA8EA1"],
+      colorList: ['#7660D6', '#6EEBE4', '#9DD66D', '#FA8EA1'],
     };
   },
   methods: {
     async submit() {
-      if (this.deckInput == "") {
-        this.showSnackBar("snackbar4");
+      if (this.deckInput == '') {
+        this.showSnackBar('snackbar4');
         return;
       }
       const response = await axios.post(url, {
@@ -182,7 +201,7 @@ export default {
         userId: this.emittedUser._id,
       });
       if (response.status !== 201) {
-        console.log("error: ", response);
+        console.log('error: ', response);
       }
       this.deckObjectList.push(response.data);
       if (this.deckObjectList.length == 1) {
@@ -190,7 +209,7 @@ export default {
       } else {
         this.onlyOneDeck = false;
       }
-      this.deckInput = "";
+      this.deckInput = '';
     },
     hamburgerWasClicked() {
       if (!this.hamburgerClicked) {
@@ -206,30 +225,30 @@ export default {
     },
     disableDarkMode() {
       this.darkModeOn = false;
-      localStorage.setItem("darkModeOn", this.darkModeOn);
-      document.documentElement.style.setProperty("--primary-color", "#8C1A62");
+      localStorage.setItem('darkModeOn', String(this.darkModeOn));
+      document.documentElement.style.setProperty('--primary-color', '#8C1A62');
       document.documentElement.style.setProperty(
-        "--secondary-color",
-        "#81175a"
+        '--secondary-color',
+        '#81175a'
       );
-      document.documentElement.style.setProperty("--tertiary-color", "#EEE1D6");
+      document.documentElement.style.setProperty('--tertiary-color', '#EEE1D6');
       document.documentElement.style.setProperty(
-        "--quaternary-color",
-        "#ddd1c7"
+        '--quaternary-color',
+        '#ddd1c7'
       );
     },
     enableDarkMode() {
       this.darkModeOn = true;
-      localStorage.setItem("darkModeOn", this.darkModeOn);
-      document.documentElement.style.setProperty("--primary-color", "#325573");
+      localStorage.setItem('darkModeOn', String(this.darkModeOn));
+      document.documentElement.style.setProperty('--primary-color', '#325573');
       document.documentElement.style.setProperty(
-        "--secondary-color",
-        "#2d4c68"
+        '--secondary-color',
+        '#2d4c68'
       );
-      document.documentElement.style.setProperty("--tertiary-color", "#B6D6F2");
+      document.documentElement.style.setProperty('--tertiary-color', '#B6D6F2');
       document.documentElement.style.setProperty(
-        "--quaternary-color",
-        "#517EA6"
+        '--quaternary-color',
+        '#517EA6'
       );
     },
     deleteAccountPressed() {
@@ -253,73 +272,72 @@ export default {
       this.deleteAccountButtonPressed = false;
       this.deleteAccountButtonPressedTwice = false;
     },
-    goToDeck(deckObj) {
+    goToDeck(deckObj: Deck) {
       //emit deck
-      this.$emit("emitDeck", deckObj);
+      this.$emit('emitDeck', deckObj);
       //advance route
       this.$router.push({ path: `/welcome/single-deck/${deckObj.deckName}` });
     },
     returnToLoginPage() {
-      localStorage.removeItem("emittedUser._id");
+      localStorage.removeItem('emittedUser._id');
       this.$router.push({ path: `/` });
     },
-    showSnackBar(snackBarNum) {
+    showSnackBar(snackBarNum: string) {
       // Get the snackbar DIV
-      var x = document.getElementById(snackBarNum);
+      let snackBarElement = document.getElementById(snackBarNum);
       // Add the "show" class to DIV
-      if (x != null) {
-        x.classList.add("show");
+      if (snackBarElement != null) {
+        snackBarElement.classList.add('show');
       }
-
       // After 3 seconds, remove the show class from DIV
       setTimeout(function () {
-        if (x != null) {
-          x.classList.remove("show");
+        if (snackBarElement != null) {
+          snackBarElement.classList.remove('show');
         }
       }, 3000);
     },
   },
   async created() {
-    const localDarkMode = localStorage.getItem("darkModeOn");
-    if (localDarkMode === "true") {
+    const localDarkMode = localStorage.getItem('darkModeOn');
+    if (localDarkMode === 'true') {
       this.darkModeOn = true;
-    } else if (localDarkMode === "false") {
+    } else if (localDarkMode === 'false') {
       this.darkModeOn = false;
     }
     if (this.darkModeOn == undefined || this.darkModeOn == false) {
-      document.documentElement.style.setProperty("--primary-color", "#8C1A62");
+      document.documentElement.style.setProperty('--primary-color', '#8C1A62');
       document.documentElement.style.setProperty(
-        "--secondary-color",
-        "#81175a"
+        '--secondary-color',
+        '#81175a'
       );
-      document.documentElement.style.setProperty("--tertiary-color", "#EEE1D6");
+      document.documentElement.style.setProperty('--tertiary-color', '#EEE1D6');
       document.documentElement.style.setProperty(
-        "--quaternary-color",
-        "#ddd1c7"
+        '--quaternary-color',
+        '#ddd1c7'
       );
     } else if (this.darkModeOn == true) {
-      document.documentElement.style.setProperty("--primary-color", "#325573");
+      document.documentElement.style.setProperty('--primary-color', '#325573');
       document.documentElement.style.setProperty(
-        "--secondary-color",
-        "#2d4c68"
+        '--secondary-color',
+        '#2d4c68'
       );
-      document.documentElement.style.setProperty("--tertiary-color", "#B6D6F2");
+      document.documentElement.style.setProperty('--tertiary-color', '#B6D6F2');
       document.documentElement.style.setProperty(
-        "--quaternary-color",
-        "#517EA6"
+        '--quaternary-color',
+        '#517EA6'
       );
     }
     if (this.emittedUser._id != undefined) {
-      localStorage.setItem("emittedUser._id", this.emittedUser._id);
+      localStorage.setItem('emittedUser._id', this.emittedUser._id);
       if (this.emittedUser.userName == undefined) {
         const responseFromUsers = await axios.get(
           urlForUsers + this.emittedUser._id
         );
-        this.$emit("emitUser", responseFromUsers.data);
+        this.$emit('emitUser', responseFromUsers.data);
       }
     }
     if (this.emittedUser._id == undefined) {
-      const userIdFromLocalStorage = localStorage.getItem("emittedUser._id");
+      const userIdFromLocalStorage = localStorage.getItem('emittedUser._id');
 
       if (userIdFromLocalStorage == undefined) {
         this.returnToLoginPage();
@@ -328,7 +346,7 @@ export default {
       const responseFromUsers = await axios.get(
         urlForUsers + userIdFromLocalStorage
       );
-      this.$emit("emitUser", responseFromUsers.data);
+      this.$emit('emitUser', responseFromUsers.data);
       const response = await axios.get(url + userIdFromLocalStorage);
       this.deckObjectList = response.data;
       if (this.deckObjectList.length == 1) {
@@ -409,14 +427,14 @@ export default {
 
 #notebookTape {
   margin: auto;
-  background: url("../assets/tape.png") no-repeat;
+  background: url('../assets/tape.png') no-repeat;
   background-size: cover;
 }
 
 #notebookName {
   margin: auto;
   padding: 0.4em;
-  font-family: "Permanent Marker", cursive;
+  font-family: 'Permanent Marker', cursive;
   width: 150px;
   height: 50px;
   align-items: center;
