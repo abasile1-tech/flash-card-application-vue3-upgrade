@@ -21,13 +21,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "exclude": [
-    "src/components/Welcome.vue",
-    "src/components/SingleDeck.vue",
-    "src/components/LoginPage.vue",
-    "src/App.vue",
-    "src/main.ts",
-    "src/routes.ts"
-  ],
+  "exclude": [],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
