@@ -37,11 +37,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importStar(require("mongoose"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const router = express_1.default.Router();
 const deckSchema_1 = require("../../models/deckSchema");
-if (process.env.NODE_ENV !== 'production') {
-    const result = dotenv_1.default.config();
+if (process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const dotenv = require("dotenv");
+    const result = dotenv.config();
     if (result.error) {
         throw result.error;
     }
@@ -49,19 +50,19 @@ if (process.env.NODE_ENV !== 'production') {
 const url = process.env.mongoURL;
 mongoose_1.default
     .connect(url)
-    .then(() => console.log('Database connected!'))
+    .then(() => console.log("Database connected!"))
     .catch((err) => console.log(err));
-const Deck = mongoose_1.default.model('Deck', deckSchema_1.deckSchema, 'decks');
+const Deck = mongoose_1.default.model("Deck", deckSchema_1.deckSchema, "decks");
 // Get Decks
-router.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send(yield Deck.find({ userId: new mongoose_1.default.Types.ObjectId(req.params.id) }));
 }));
 // Get Deck after page reload
-router.get('/deck/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/deck/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send(yield Deck.findOne({ _id: new mongoose_1.default.Types.ObjectId(req.params.id) }));
 }));
 // Add Deck
-router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const deck = new Deck();
         deck.deckName = req.body.deckName;
@@ -72,11 +73,11 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (err) {
         console.log(err);
-        res.status(500).send('Error saving the deck.');
+        res.status(500).send("Error saving the deck.");
     }
 }));
 // Delete Deck
-router.delete('/:id/deckName', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete("/:id/deckName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield Deck.findByIdAndDelete(req.params.id);
         res.status(200).send();
@@ -86,7 +87,7 @@ router.delete('/:id/deckName', (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 }));
 // Delete Decks
-router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const decks = yield Deck.find({
             userId: new mongoose_1.Types.ObjectId(req.params.id),
@@ -101,7 +102,7 @@ router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 // Edit Deck
-router.put('/:id/deckName', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put("/:id/deckName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const deck = yield Deck.findById(req.params.id);
         deck.deckName = req.body.deckName;
@@ -110,11 +111,11 @@ router.put('/:id/deckName', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
     catch (err) {
         console.log(err);
-        res.status(500).send('Error saving the deck.');
+        res.status(500).send("Error saving the deck.");
     }
 }));
 // Add Card
-router.post('/:id/cards/:cardsListIndex', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/:id/cards/:cardsListIndex", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const deck = yield Deck.findById(req.params.id);
     // if there are no cards or only one card, add the new card to the end
     if (deck.cards.length === 0 || deck.cards.length === 1) {
@@ -144,11 +145,11 @@ router.post('/:id/cards/:cardsListIndex', (req, res) => __awaiter(void 0, void 0
     }
     catch (err) {
         console.log(err);
-        res.status(500).send('Error saving the deck.');
+        res.status(500).send("Error saving the deck.");
     }
 }));
 // Edit Card Front
-router.put('/:id/cards/front/:cardId/:cardsListIndex', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put("/:id/cards/front/:cardId/:cardsListIndex", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const deck = yield Deck.findById(req.params.id);
         deck.cards[req.params.cardsListIndex] = {
@@ -160,11 +161,11 @@ router.put('/:id/cards/front/:cardId/:cardsListIndex', (req, res) => __awaiter(v
     }
     catch (err) {
         console.log(err);
-        res.status(500).send('Error saving the deck.');
+        res.status(500).send("Error saving the deck.");
     }
 }));
 // Edit Card Back
-router.put('/:id/cards/back/:cardId/:cardsListIndex', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put("/:id/cards/back/:cardId/:cardsListIndex", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const deck = yield Deck.findById(req.params.id);
         deck.cards[req.params.cardsListIndex] = {
@@ -176,15 +177,15 @@ router.put('/:id/cards/back/:cardId/:cardsListIndex', (req, res) => __awaiter(vo
     }
     catch (err) {
         console.log(err);
-        res.status(500).send('Error saving the deck.');
+        res.status(500).send("Error saving the deck.");
     }
 }));
 // Delete Card
-router.delete('/:id/cards/:cardId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete("/:id/cards/:cardId", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const deck = yield Deck.findById(req.params.id);
         // Find the index of the card with the specified ID
-        const cardIndex = deck.cards.findIndex((card) => card._id.toString() === req.params.cardId);
+        const cardIndex = deck.cards.findIndex(card => card._id.toString() === req.params.cardId);
         if (cardIndex !== -1) {
             // Remove the card from the array
             deck.cards.splice(cardIndex, 1);
@@ -192,12 +193,12 @@ router.delete('/:id/cards/:cardId', (req, res) => __awaiter(void 0, void 0, void
             res.status(201).json(deck);
         }
         else {
-            res.status(404).send('Card not found.');
+            res.status(404).send("Card not found.");
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).send('Error saving the deck.');
+        res.status(500).send("Error saving the deck.");
     }
 }));
 exports.default = router;
