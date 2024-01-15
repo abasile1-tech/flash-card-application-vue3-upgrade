@@ -4,6 +4,9 @@
 
 This code base creates a general-purpose flash card app. The tech stack is Vue 3, Node, TypeScript, Vite, Axios, Express, Mongoose, and MongoDB. Testing suites used include Vitest and Cypress. Users can sign up for accounts (with password encryption using Bcrypt) in order to create decks with cards that can then be read aloud to them in the language of their choice. Users can also test their pronunciation by speaking the contents of the card and receiving assessment feedback on how well their pronunciation matched the native speaker's pronunciation.
 
+## Check Out the App Yourself
+You can create a free account and log in to try out the flashcard app. It is hosted in the cloud at https://vast-citadel-56213.herokuapp.com/
+
 ## Designed for Both Mobile and Desktop
 Using responsive styling, the webpage looks great on both large and small screens.
 
