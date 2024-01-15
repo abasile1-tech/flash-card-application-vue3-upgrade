@@ -88,6 +88,11 @@ There is also a Cypress testing suite in the client folder. **cd** into the clie
 - Allow each notebook to have a user-choosable color to allow for further customization
 - Save each user's preference for dark or light mode in the database and load that preference the next time that they log in.
 
+## Videos
+https://github.com/abasile1-tech/flash-card-application-vue3-upgrade/assets/59401762/d25a2c87-f0c1-48b2-9ba8-a83e711802cd
+
+https://github.com/abasile1-tech/flash-card-application-vue3-upgrade/assets/59401762/d3ea631d-ea92-4a20-9699-ca5749442e0b
+
 ## :camera_flash: Screenshots
 
 ![login_page](https://github.com/abasile1-tech/flash-card-application/blob/main/screenshots/login_page.PNG?raw=true)
