@@ -1324,7 +1324,7 @@ export default {
 }
 
 #cardNumberBox {
-  width: 2em;
+  width: 4em;
 }
 
 .cardPromptClass1 {
