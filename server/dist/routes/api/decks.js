@@ -152,6 +152,7 @@ router.put('/:id/cards/front/:cardId/:cardsListIndex', (req, res) => __awaiter(v
     try {
         const deck = yield Deck.findById(req.params.id);
         deck.cards[req.params.cardsListIndex] = {
+            _id: req.params.cardId,
             cardFront: req.body.cardFront,
             cardBack: req.body.cardBack,
         };
@@ -168,6 +169,7 @@ router.put('/:id/cards/back/:cardId/:cardsListIndex', (req, res) => __awaiter(vo
     try {
         const deck = yield Deck.findById(req.params.id);
         deck.cards[req.params.cardsListIndex] = {
+            _id: req.params.cardId,
             cardFront: req.body.cardFront,
             cardBack: req.body.cardBack,
         };
@@ -183,8 +185,9 @@ router.put('/:id/cards/back/:cardId/:cardsListIndex', (req, res) => __awaiter(vo
 router.delete('/:id/cards/:cardId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const deck = yield Deck.findById(req.params.id);
-        // Find the index of the card with the specified ID
+        // Find the index of the card with the specified ID (if unsuccessful, findIndex returns -1)
         const cardIndex = deck.cards.findIndex((card) => card._id.toString() === req.params.cardId);
+        // If findIndex didn't return -1, then remove the card
         if (cardIndex !== -1) {
             // Remove the card from the array
             deck.cards.splice(cardIndex, 1);
@@ -192,6 +195,7 @@ router.delete('/:id/cards/:cardId', (req, res) => __awaiter(void 0, void 0, void
             res.status(201).json(deck);
         }
         else {
+            console.log('cardIndex: ', cardIndex);
             res.status(404).send('Card not found.');
         }
     }
