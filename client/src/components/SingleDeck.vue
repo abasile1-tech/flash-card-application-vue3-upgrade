@@ -33,7 +33,7 @@
       <div
         id="hamburgerMenu"
         v-on:click="hamburgerWasClicked"
-        v-click-outside="pageWasClicked"
+        v-clickOutside="pageWasClicked"
       >
         <img
           id="hamburgerImage"
@@ -354,9 +354,13 @@
 
 <!-- <script setup lang="ts"></script> -->
 
-<script lang="ts">
+<script setup lang="ts">
 import axios from 'axios';
+import { ref, defineProps} from 'vue';
+import { useRouter } from 'vue-router';
+
 const url = '/api/decks/';
+const router = useRouter();
 
 try {
   var speechSynthesis = window.speechSynthesis;
@@ -412,840 +416,830 @@ interface Card {
 }
 
 try {
-  var SpeechRecognition =
+  const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 } catch (err) {
   console.log('Error with speechRecognition initialization.\n');
 }
 
 if (typeof navigator !== 'undefined') {
-  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 
-export default {
-  props: {
-    emittedObject: {
-      type: Object,
+const props = defineProps( {
+  emittedObject: {
+    type: Object,
+    required: true,
+    _id: {
+      type: String,
       required: true,
-      _id: {
-        type: String,
-        required: true,
-      },
-      cards: {
-        type: Array,
-        required: true,
-      },
-      deckName: {
-        type: String,
-        required: true,
-      },
+    },
+    cards: {
+      type: Array,
+      required: true,
+    },
+    deckName: {
+      type: String,
+      required: true,
     },
   },
-  directives: {
-    focus: {
-      mounted(el) {
-        el.focus();
-      },
-    },
-    'click-outside': {
-      mounted(el, binding) {
-        const onClick = (event: Event) => {
-          if (!(el === event.target || el.contains(event.target))) {
-            binding.value(event);
-          }
-        };
-        document.body.addEventListener('click', onClick);
-        el.clickOutsideEvent = onClick;
-      },
-      unmounted(el) {
-        document.body.removeEventListener('click', el.clickOutsideEvent);
-      },
-    },
-  },
-
-  data(): Data {
-    return {
-      cardSide: 'Front',
-      cardPrompt: "Please add a card by clicking the 'Add Card' button below.",
-      cardFrontInput: '',
-      cardBackInput: '',
-      addCardFront: false,
-      addCardBack: false,
-      editCardFront: false,
-      editCardBack: false,
-      cardsListIndex: 0,
-      editDeckNameSelected: false,
-      editDeckNameInput: '',
-      numberSearchInput: 1,
-      cardId: '',
-      deleteDeckButtonPressed: false,
-      deleteCardButtonPressed: false,
-      editCardButtonPressed: false,
-      optionList: [],
-      selectedLanguage: '',
-      isMobile: isMobile,
-      deckSearchInput: '',
-      deckIsShuffled: false,
-      hamburgerClicked: false,
-      darkModeOn: false,
-      backModeOn: false,
-      isListeningForSpeech: false,
-      speechInputResult: '',
-      speechScore: 0,
-    };
-  },
-  methods: {
-    returnToLoginPage() {
-      localStorage.removeItem('emittedUser._id');
-      localStorage.removeItem('emittedObject._id');
-      this.$router.push({ path: `/` });
-    },
-    hamburgerWasClicked() {
-      if (!this.hamburgerClicked) {
-        this.hamburgerClicked = true;
-      } else {
-        this.hamburgerClicked = false;
-      }
-    },
-    pageWasClicked() {
-      if (this.hamburgerClicked) {
-        this.hamburgerClicked = false;
-      }
-    },
-    disableDarkMode() {
-      this.darkModeOn = false;
-      localStorage.setItem('darkModeOn', String(this.darkModeOn));
-      document.documentElement.style.setProperty('--primary-color', '#8C1A62');
-      document.documentElement.style.setProperty(
-        '--secondary-color',
-        '#81175a'
-      );
-      document.documentElement.style.setProperty('--tertiary-color', '#EEE1D6');
-      document.documentElement.style.setProperty(
-        '--quaternary-color',
-        '#ddd1c7'
-      );
-    },
-    enableDarkMode() {
-      this.darkModeOn = true;
-      localStorage.setItem('darkModeOn', String(this.darkModeOn));
-      document.documentElement.style.setProperty('--primary-color', '#325573');
-      document.documentElement.style.setProperty(
-        '--secondary-color',
-        '#2d4c68'
-      );
-      document.documentElement.style.setProperty('--tertiary-color', '#B6D6F2');
-      document.documentElement.style.setProperty(
-        '--quaternary-color',
-        '#517EA6'
-      );
-    },
-    disableBackMode() {
-      this.backModeOn = false;
-      this.cardSide = 'Front';
-      this.cardPrompt = this.emittedObject.cards[this.cardsListIndex].cardFront;
-    },
-    enableBackMode() {
-      this.backModeOn = true;
-      this.cardSide = 'Back';
-      this.cardPrompt = this.emittedObject.cards[this.cardsListIndex].cardBack;
-    },
-    async deckSearch() {
-      if (await this.checkForMatchRecursive(1)) {
-        return;
-      }
-      // if there was no match, show the snackbar saying that there wasn't a match
-      else {
-        this.deckSearchInput = '';
-        this.showSnackBar('snackbar7');
-        return;
-      }
-    },
-
-    async checkForMatchRecursive(
-      similarityRequirement: number
-    ): Promise<boolean> {
-      let cardFound = false;
-      let indexVar = -1;
-      let side = 'Front';
-      // Search the card fronts for the search term
-      [cardFound, indexVar] = await this.searchOneSideOfCardsForPartial(
-        cardFound,
-        indexVar,
-        side,
-        similarityRequirement
-      );
-
-      // if there was a match on the card fronts, show that card front
-      if (cardFound === true) {
-        await this.showFoundCardSide(indexVar, side);
-        return true;
-      }
-      side = 'Back';
-      // if the card still hasn't been found, check the backs of the cards
-      if (cardFound === false) {
-        [cardFound, indexVar] = await this.searchOneSideOfCardsForPartial(
-          cardFound,
-          indexVar,
-          side,
-          similarityRequirement
-        );
-      }
-      // if there was a match on the card backs, show that card back
-      if (cardFound === true) {
-        await this.showFoundCardSide(indexVar, side);
-        return true;
-      }
-      similarityRequirement -= 0.1;
-      while (similarityRequirement > 0.3) {
-        return this.checkForMatchRecursive(similarityRequirement);
-      }
-
-      return false;
-    },
-
-    async searchOneSideOfCardsForPartial(
-      cardFound: boolean,
-      indexVar: number,
-      sideToSearch: string,
-      similarityRequirement: number
-    ): Promise<[boolean, number]> {
-      let searchProperty = sideToSearch === 'Back' ? 'cardBack' : 'cardFront';
-      for (let i = 0; i < this.emittedObject.cards?.length; i++) {
-        if (
-          this.calculateSimilarity(
-            this.emittedObject.cards[i][searchProperty],
-            this.deckSearchInput
-          ) >= similarityRequirement
-        ) {
-          indexVar = i;
-          cardFound = true;
-          break;
-        }
-      }
-      return [cardFound, indexVar];
-    },
-
-    async showFoundCardSide(indexVar: number, sideToDisplay: string) {
-      let searchProperty = sideToDisplay === 'Back' ? 'cardBack' : 'cardFront';
-      this.cardsListIndex = indexVar;
-      this.cardSide = sideToDisplay;
-      this.cardPrompt =
-        this.emittedObject.cards[this.cardsListIndex][searchProperty];
-      this.deckSearchInput = '';
-      this.numberSearchInput = this.cardsListIndex + 1;
-    },
-
-    async numberSearch() {
-      const numberInput = this.numberSearchInput;
-      if (numberInput > 0 && numberInput <= this.emittedObject.cards?.length) {
-        this.cardsListIndex = numberInput - 1;
-        if (this.backModeOn) {
-          this.cardSide = 'Back';
-          this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardBack;
-        } else {
-          this.cardSide = 'Front';
-          this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardFront;
-        }
-        return;
-      } else {
-        this.numberSearchInput = this.cardsListIndex + 1;
-        this.showSnackBar('snackbar10');
-        return;
-      }
-    },
-    populateVoiceList() {
-      try {
-        this.optionList = speechSynthesis.getVoices();
-      } catch (err) {
-        console.log('Error with getVoices in populateVoiceList.\n');
-      }
-    },
-    shuffleArray(array: Card[]) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    },
-    focusOnCardFrontInput() {
-      this.$nextTick(() => {
-        (this.$refs.frontInput as HTMLInputElement).focus();
-      });
-    },
-    focusOnCardBackInput() {
-      this.$nextTick(() => {
-        (this.$refs.backInput as HTMLInputElement).focus();
-      });
-    },
-    readCard() {
-      try {
-        const language = this.optionList.filter(
-          (item) => item.name === this.selectedLanguage
-        );
-        let utterance = new SpeechSynthesisUtterance(this.cardPrompt);
-        utterance.voice = language[0] as SpeechSynthesisVoice;
-        speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.log('Error with speechSynthesis for readCard.\n');
-      }
-    },
-    resetSpeechInput() {
-      this.isListeningForSpeech = false;
-      this.speechInputResult = '';
-      this.speechScore = 0;
-    },
-    editDistance(s1: string, s2: string) {
-      s1 = s1.toLowerCase();
-      s2 = s2.toLowerCase();
-
-      var costs = new Array();
-      for (var i = 0; i <= s1.length; i++) {
-        var lastValue = i;
-        for (var j = 0; j <= s2.length; j++) {
-          if (i == 0) costs[j] = j;
-          else {
-            if (j > 0) {
-              var newValue = costs[j - 1];
-              if (s1.charAt(i - 1) != s2.charAt(j - 1))
-                newValue =
-                  Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-              costs[j - 1] = lastValue;
-              lastValue = newValue;
-            }
-          }
-        }
-        if (i > 0) costs[s2.length] = lastValue;
-      }
-      return costs[s2.length];
-    },
-    calculateSimilarity(s1: string, s2: string) {
-      var longer = s1;
-      var shorter = s2;
-      if (s1.length < s2.length) {
-        longer = s2;
-        shorter = s1;
-      }
-      var longerLength = longer.length;
-      if (longerLength == 0) {
-        return 1.0;
-      }
-      return (longerLength - this.editDistance(longer, shorter)) / longerLength;
-    },
-    calculateSpeechScore() {
-      const similarityResult = this.calculateSimilarity(
-        this.cardPrompt,
-        this.speechInputResult
-      );
-      this.speechScore = similarityResult * 100;
-    },
-    getSpeechInput() {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-
-      const language = this.optionList.filter(
-        (item) => item.name === this.selectedLanguage
-      );
-      if (language[0]) {
-        recognition.lang = language[0].lang ? language[0].lang : 'en-US';
-      } else {
-        recognition.lang = 'en-US';
-      }
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.start();
-      this.isListeningForSpeech = true;
-
-      recognition.onspeechend = () => {
-        recognition.stop();
-        this.isListeningForSpeech = false;
-      };
-
-      recognition.onresult = (event: { results: any }) => {
-        const speechInputResult = event.results[0][0].transcript;
-        this.speechInputResult = speechInputResult;
-        this.calculateSpeechScore();
-        setTimeout(() => this.resetSpeechInput(), 2000);
-      };
-      recognition.onnomatch = (event: {}) => {
-        console.log("I didn't recognize that word.");
-        console.log('event: ', event);
-        recognition.stop();
-        this.resetSpeechInput();
-      };
-      recognition.onerror = (event: { error: any }) => {
-        console.log(`Error occurred in recognition: ${event.error}`);
-        recognition.stop();
-        this.resetSpeechInput();
-      };
-    },
-    flipCard() {
-      if (
-        this.emittedObject.cards?.length === 0 &&
-        !this.addCardBack &&
-        !this.addCardFront
-      ) {
-        this.showSnackBar('snackbar2');
-        return;
-      }
-      if (this.addCardFront) {
-        this.cardSide = 'Back';
-        this.addCardBack = true;
-        this.addCardFront = false;
-        this.focusOnCardBackInput();
-        return;
-      }
-      if (this.addCardBack) {
-        this.cardSide = 'Front';
-        this.addCardBack = false;
-        this.addCardFront = true;
-        this.focusOnCardFrontInput();
-        return;
-      }
-      if (this.cardSide === 'Front') {
-        this.cardSide = 'Back';
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardBack;
-      } else {
-        this.cardSide = 'Front';
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardFront;
-      }
-    },
-    addCard() {
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-        this.addCardBack = true;
-      } else {
-        this.cardSide = 'Front';
-        this.addCardFront = true;
-      }
-    },
-    abortAddCard() {
-      this.addCardFront = false;
-      this.addCardBack = false;
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-      } else {
-        this.cardSide = 'Front';
-      }
-      this.cardFrontInput = '';
-      this.cardBackInput = '';
-      if (this.emittedObject.cards?.length === 0) {
-        return;
-      } else {
-        if (this.backModeOn) {
-          this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardBack;
-        } else {
-          this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardFront;
-        }
-        this.cardId = this.emittedObject.cards[this.cardsListIndex]._id;
-        return;
-      }
-    },
-    abortEditCard() {
-      this.editCardButtonPressed = false;
-      this.editCardFront = false;
-      this.editCardBack = false;
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-      } else {
-        this.cardSide = 'Front';
-      }
-      this.cardFrontInput = '';
-      this.cardBackInput = '';
-      if (this.emittedObject.cards?.length === 0) {
-        return;
-      } else {
-        if (this.backModeOn) {
-          this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardBack;
-        } else {
-          this.cardPrompt =
-            this.emittedObject.cards[this.cardsListIndex].cardFront;
-        }
-        this.cardId = this.emittedObject.cards[this.cardsListIndex]._id;
-        return;
-      }
-    },
-    async submitCard() {
-      if (this.cardFrontInput == '' || this.cardBackInput == '') {
-        this.abortAddCard();
-        this.showSnackBar('snackbar5');
-        return;
-      }
-      const response = await axios.post(
-        url + this.emittedObject._id + '/cards/' + this.cardsListIndex,
-        { cardFront: this.cardFrontInput, cardBack: this.cardBackInput }
-      );
-      if (response.status !== 201) {
-        console.log('error: ', response);
-      }
-      // this.emittedObject.cards = response.data.cards;
-      const updatedDeck = this.updateAndEmitDeck({
-        cards: response.data.cards,
-      });
-
-      this.addCardFront = false;
-      this.addCardBack = false;
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-      } else {
-        this.cardSide = 'Front';
-      }
-      this.cardFrontInput = '';
-      this.cardBackInput = '';
-      if (updatedDeck.cards?.length - this.cardsListIndex > 1) {
-        this.cardsListIndex += 1;
-      }
-      if (this.backModeOn) {
-        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardBack;
-      } else {
-        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardFront;
-      }
-      this.cardId = updatedDeck.cards[this.cardsListIndex]._id;
-      this.numberSearchInput = this.cardsListIndex + 1;
-    },
-    async submitEditedCardFront() {
-      if (this.cardFrontInput == '') {
-        this.abortEditCard();
-        this.showSnackBar('snackbar5');
-        return;
-      }
-      const response = await axios.put(
-        url +
-          this.emittedObject._id +
-          '/cards/' +
-          'front/' +
-          this.cardId +
-          '/' +
-          this.cardsListIndex,
-        {
-          cardFront: this.cardFrontInput,
-          cardBack: this.emittedObject.cards[this.cardsListIndex].cardBack,
-        }
-      );
-      if (response.status !== 201) {
-        console.log('error: ', response);
-      }
-      // this.emittedObject.cards = response.data.cards;
-      const updatedDeck = this.updateAndEmitDeck({
-        cards: response.data.cards,
-      });
-
-      this.editCardFront = false;
-      this.editCardButtonPressed = false;
-      this.cardFrontInput = '';
-      this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardFront;
-    },
-    updateAndEmitDeck({
-      _id = null,
-      deckName = null as string | null,
-      cards = null,
-    }) {
-      const updatedDeckObject = JSON.parse(JSON.stringify(this.emittedObject));
-      updatedDeckObject._id = _id === null ? updatedDeckObject._id : _id;
-      updatedDeckObject.deckName =
-        deckName === null ? updatedDeckObject.deckName : deckName;
-      updatedDeckObject.cards =
-        cards === null ? updatedDeckObject.cards : cards;
-      this.$emit('emitDeck', updatedDeckObject);
-      return updatedDeckObject;
-    },
-    async submitEditedCardBack() {
-      if (this.cardBackInput == '') {
-        this.abortEditCard();
-        this.showSnackBar('snackbar5');
-        return;
-      }
-      const response = await axios.put(
-        url +
-          this.emittedObject._id +
-          '/cards/' +
-          'back/' +
-          this.cardId +
-          '/' +
-          this.cardsListIndex,
-        {
-          cardFront: this.emittedObject.cards[this.cardsListIndex].cardFront,
-          cardBack: this.cardBackInput,
-        }
-      );
-      if (response.status !== 201) {
-        console.log('error: ', response);
-      }
-      // this.emittedObject.cards = response.data.cards;
-      const updatedDeck = this.updateAndEmitDeck({
-        cards: response.data.cards,
-      });
-
-      this.editCardBack = false;
-      this.editCardButtonPressed = false;
-      this.cardBackInput = '';
-      this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardBack;
-    },
-    updateCardIndex(indexToAdd: number) {
-      if (this.emittedObject.cards?.length === 0) {
-        this.showSnackBar('snackbar3');
-        return;
-      }
-      if (this.emittedObject.cards?.length === 1) {
-        this.showSnackBar('snackbar1');
-        return;
-      }
-      if (indexToAdd + this.cardsListIndex < 0) {
-        this.cardsListIndex = this.emittedObject.cards?.length - 1;
-      } else if (
-        indexToAdd + this.cardsListIndex >
-        this.emittedObject.cards?.length - 1
-      ) {
-        this.cardsListIndex = 0;
-      } else {
-        this.cardsListIndex = indexToAdd + this.cardsListIndex;
-      }
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardBack;
-      } else {
-        this.cardSide = 'Front';
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardFront;
-      }
-      this.cardId = this.emittedObject.cards[this.cardsListIndex]._id;
-      this.numberSearchInput = this.cardsListIndex + 1;
-    },
-    editCardPressed() {
-      if (this.deckIsShuffled) {
-        this.showSnackBar('snackbar9');
-        return;
-      }
-      if (this.emittedObject.cards?.length === 0) {
-        this.showSnackBar('snackbar8');
-        return;
-      } else {
-        this.editCardButtonPressed = true;
-        if (this.cardSide === 'Front') {
-          this.editCardFront = true;
-        }
-        if (this.cardSide === 'Back') {
-          this.editCardBack = true;
-        }
-        return;
-      }
-    },
-    deleteCardPressed() {
-      if (this.deckIsShuffled) {
-        this.showSnackBar('snackbar9');
-        return;
-      }
-      if (this.emittedObject.cards?.length === 0) {
-        this.showSnackBar('snackbar6');
-        return;
-      } else {
-        this.deleteCardButtonPressed = true;
-        return;
-      }
-    },
-    async deleteCard() {
-      this.deleteCardButtonPressed = false;
-      await axios.delete(
-        url + this.emittedObject._id + '/cards/' + this.cardId
-      );
-      // this.emittedObject.cards.splice(this.cardsListIndex, 1);
-      const updatedDeckObject = JSON.parse(JSON.stringify(this.emittedObject));
-      updatedDeckObject.cards.splice(this.cardsListIndex, 1);
-      this.$emit('emitDeck', updatedDeckObject);
-
-      if (updatedDeckObject.cards?.length - 1 >= 0) {
-        this.cardsListIndex =
-          this.cardsListIndex === 0 ? 0 : this.cardsListIndex - 1;
-        this.cardId = updatedDeckObject.cards[this.cardsListIndex]._id;
-        if (this.backModeOn) {
-          this.cardSide = 'Back';
-          this.cardPrompt =
-            updatedDeckObject.cards[this.cardsListIndex].cardBack;
-        } else {
-          this.cardSide = 'Front';
-          this.cardPrompt =
-            updatedDeckObject.cards[this.cardsListIndex].cardFront;
-        }
-      } else {
-        this.cardPrompt =
-          "Please add a card by clicking the 'Add Card' button below.";
-      }
-      this.numberSearchInput = this.cardsListIndex + 1;
-    },
-    async doNotDeleteCard() {
-      this.deleteCardButtonPressed = false;
-    },
-    goBackToDecks() {
-      localStorage.removeItem('emittedObject._id');
-      //advance route back to the Welcome Page
-      this.$router.push({ path: '/welcome' });
-    },
-    // because I am shuffling the emittedObject.cards array, the shuffling is only temporary. The database is not changed in any way.
-    shuffleDeck() {
-      if (this.emittedObject.cards?.length === 0) {
-        this.showSnackBar('snackbar3');
-        return;
-      }
-      if (this.emittedObject.cards?.length === 1) {
-        this.showSnackBar('snackbar1');
-        return;
-      }
-      this.shuffleArray(this.emittedObject.cards);
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardBack;
-      } else {
-        this.cardSide = 'Front';
-        this.cardPrompt =
-          this.emittedObject.cards[this.cardsListIndex].cardFront;
-      }
-      this.cardId = this.emittedObject.cards[this.cardsListIndex].cardId;
-      this.deckIsShuffled = true;
-    },
-    async unShuffleDeck() {
-      // this.emittedObject._id = localStorage.getItem("emittedObject._id");
-      const localStorageId = localStorage.getItem('emittedObject._id');
-      const responseFromDecks = await axios.get(
-        url + '/deck/' + localStorageId
-      );
-      // this.emittedObject = responseFromDecks.data;
-      const updatedDeck = this.updateAndEmitDeck(responseFromDecks.data);
-
-      if (this.backModeOn) {
-        this.cardSide = 'Back';
-        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardBack;
-      } else {
-        this.cardSide = 'Front';
-        this.cardPrompt = updatedDeck.cards[this.cardsListIndex].cardFront;
-      }
-      this.cardId = updatedDeck.cards[this.cardsListIndex]._id;
-      this.deckIsShuffled = false;
-    },
-    deleteDeckPressed() {
-      this.deleteDeckButtonPressed = true;
-    },
-    async deleteDeck() {
-      this.deleteDeckButtonPressed = false;
-      await axios.delete(url + this.emittedObject._id + '/deckName');
-      this.goBackToDecks();
-    },
-    async doNotDeleteDeck() {
-      this.deleteDeckButtonPressed = false;
-    },
-    editDeckName() {
-      this.editDeckNameSelected = true;
-    },
-    async submitEditedDeckName() {
-      if (this.editDeckNameInput == '') {
-        this.editDeckNameSelected = false;
-        this.showSnackBar('snackbar4');
-        return;
-      }
-      // this.emittedObject.deckName = this.editDeckNameInput;
-      this.updateAndEmitDeck({ deckName: this.editDeckNameInput });
-
-      const response = await axios.put(
-        url + this.emittedObject._id + '/deckName',
-        { deckName: this.editDeckNameInput }
-      );
-      if (response.status !== 201) {
-        console.log('error: ', response);
-      }
-      this.editDeckNameInput = '';
-      this.editDeckNameSelected = false;
-    },
-
-    showSnackBar(snackBarNum: string) {
-      // Get the snackbar DIV
-      let snackBarElement = document.getElementById(snackBarNum);
-      // Add the "show" class to DIV
-      if (snackBarElement != null) {
-        snackBarElement.classList.add('show');
-      }
-      // After 3 seconds, remove the show class from DIV
-      setTimeout(function () {
-        if (snackBarElement != null) {
-          snackBarElement.classList.remove('show');
-        }
-      }, 3000);
-    },
-  },
-  async created() {
-    const localDarkMode = localStorage.getItem('darkModeOn');
-    if (localDarkMode === 'true') {
-      this.darkModeOn = true;
-    } else if (localDarkMode === 'false') {
-      this.darkModeOn = false;
-    }
-    if (this.darkModeOn == undefined || this.darkModeOn == false) {
-      document.documentElement.style.setProperty('--primary-color', '#8C1A62');
-      document.documentElement.style.setProperty(
-        '--secondary-color',
-        '#81175a'
-      );
-      document.documentElement.style.setProperty('--tertiary-color', '#EEE1D6');
-      document.documentElement.style.setProperty(
-        '--quaternary-color',
-        '#ddd1c7'
-      );
-    } else if (this.darkModeOn == true) {
-      document.documentElement.style.setProperty('--primary-color', '#325573');
-      document.documentElement.style.setProperty(
-        '--secondary-color',
-        '#2d4c68'
-      );
-      document.documentElement.style.setProperty('--tertiary-color', '#B6D6F2');
-      document.documentElement.style.setProperty(
-        '--quaternary-color',
-        '#517EA6'
-      );
-    }
-
-    this.populateVoiceList();
-    try {
-      if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = this.populateVoiceList;
-      }
-    } catch (err) {
-      console.log('Error with speechSynthesis in created.\n');
-    }
-
-    if (this.emittedObject._id != undefined) {
-      localStorage.setItem('emittedObject._id', this.emittedObject._id);
-    }
-
-    const objectId =
-      this.emittedObject._id == undefined
-        ? localStorage.getItem('emittedObject._id')
-        : this.emittedObject._id;
-
-    if (objectId == undefined) {
-      this.goBackToDecks();
-      return;
-    }
-
-    const responseFromDecks = await axios.get(url + '/deck/' + objectId);
-    // this.emittedObject = responseFromDecks.data;
-    const updatedDeck = this.updateAndEmitDeck(responseFromDecks.data);
-
-    if (updatedDeck.cards != undefined && updatedDeck.cards != null) {
-      if (updatedDeck.cards?.length != 0) {
-        this.cardPrompt = updatedDeck.cards[0].cardFront;
-        this.cardId = updatedDeck.cards[0]._id;
-      }
-    }
-    this.deckIsShuffled = false;
+});
+const vFocus = {
+  mounted(el) => {
+    el.focus();
   },
 };
+const vClickOutside = {
+  mounted(el, binding) => {
+    const onClick = (event: Event) => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event);
+      }
+    };
+    document.body.addEventListener('click', onClick);
+    el.clickOutsideEvent = onClick;
+  },
+  unmounted(el) => {
+    document.body.removeEventListener('click', el.clickOutsideEvent);
+  },
+};
+
+
+const cardSide = ref('Front');
+const cardPrompt = ref("Please add a card by clicking the 'Add Card' button below.");
+const cardFrontInput = ref('');
+const cardBackInput = ref('');
+const addCardFront = ref(false);
+const addCardBack = ref(false);
+const editCardFront = ref(false);
+const editCardBack = ref(false)
+const cardsListIndex = ref(0)
+const editDeckNameSelected = ref(false)
+const editDeckNameInput = ref('')
+const numberSearchInput = ref(1)
+const cardId = ref('')
+const deleteDeckButtonPressed = ref(false)
+const deleteCardButtonPressed = ref(false)
+const editCardButtonPressed = ref(false)
+const optionList = ref([])
+const selectedLanguage = ref('')
+const isMobile = ref(isMobile)
+const deckSearchInput = ref('')
+const deckIsShuffled = ref(false)
+const hamburgerClicked = ref(false)
+const darkModeOn = ref(false)
+const backModeOn = ref(false)
+const isListeningForSpeech = ref(false)
+const speechInputResult = ref('')
+const speechScore = ref(0)
+
+const returnToLoginPage = () => {
+  localStorage.removeItem('emittedUser._id');
+  localStorage.removeItem('emittedObject._id');
+  router.push({ path: `/` });
+};
+const hamburgerWasClicked = () => {
+  if (!hamburgerClicked.value) {
+    hamburgerClicked.value = true;
+  } else {
+    hamburgerClicked.value = false;
+  }
+};
+const pageWasClicked = () => {
+  if (hamburgerClicked.value) {
+    hamburgerClicked.value = false;
+  }
+};
+const disableDarkMode = () => {
+  darkModeOn.value = false;
+  localStorage.setItem('darkModeOn', String(darkModeOn.value));
+  document.documentElement.style.setProperty('--primary-color', '#8C1A62');
+  document.documentElement.style.setProperty(
+    '--secondary-color',
+    '#81175a'
+  );
+  document.documentElement.style.setProperty('--tertiary-color', '#EEE1D6');
+  document.documentElement.style.setProperty(
+    '--quaternary-color',
+    '#ddd1c7'
+  );
+},
+const enableDarkMode = () => {
+  darkModeOn.value = true;
+  localStorage.setItem('darkModeOn', String(darkModeOn.value));
+  document.documentElement.style.setProperty('--primary-color', '#325573');
+  document.documentElement.style.setProperty(
+    '--secondary-color',
+    '#2d4c68'
+  );
+  document.documentElement.style.setProperty('--tertiary-color', '#B6D6F2');
+  document.documentElement.style.setProperty(
+    '--quaternary-color',
+    '#517EA6'
+  );
+};
+const disableBackMode = () => {
+  backModeOn.value = false;
+  cardSide.value = 'Front';
+  cardPrompt.value = props.emittedObject.cards.value[cardsListIndex.value].cardFront;
+};
+const enableBackMode = () => {
+  backModeOn.value = true;
+  cardSide.value = 'Back';
+  cardPrompt.value =props.emittedObject.cards[cardsListIndex.value].cardBack;
+};
+const deckSearch = async() => {
+  if (await checkForMatchRecursive(1)) {
+    return;
+  }
+  // if there was no match, show the snackbar saying that there wasn't a match
+  else {
+    deckSearchInput.value = '';
+    showSnackBar('snackbar7');
+    return;
+  }
+};
+
+const checkForMatchRecursive = async(
+  similarityRequirement: number
+): Promise<boolean> => {
+  let cardFound = false;
+  let indexVar = -1;
+  let side = 'Front';
+  // Search the card fronts for the search term
+  [cardFound, indexVar] = await searchOneSideOfCardsForPartial(
+    cardFound,
+    indexVar,
+    side,
+    similarityRequirement
+  );
+
+  // if there was a match on the card fronts, show that card front
+  if (cardFound === true) {
+    await showFoundCardSide(indexVar, side);
+    return true;
+  }
+  side = 'Back';
+  // if the card still hasn't been found, check the backs of the cards
+  if (cardFound === false) {
+    [cardFound, indexVar] = await searchOneSideOfCardsForPartial(
+      cardFound,
+      indexVar,
+      side,
+      similarityRequirement
+    );
+  }
+  // if there was a match on the card backs, show that card back
+  if (cardFound === true) {
+    await showFoundCardSide(indexVar, side);
+    return true;
+  }
+  similarityRequirement -= 0.1;
+  while (similarityRequirement > 0.3) {
+    return checkForMatchRecursive(similarityRequirement);
+  }
+
+  return false;
+};
+
+const searchOneSideOfCardsForPartial= async(
+  cardFound: boolean,
+  indexVar: number,
+  sideToSearch: string,
+  similarityRequirement: number
+): Promise<[boolean, number]> => {
+  let searchProperty = sideToSearch === 'Back' ? 'cardBack' : 'cardFront';
+  for (let i = 0; i < props.emittedObject.cards?.length; i++) {
+    if (
+      calculateSimilarity(
+        props.emittedObject.cards[i][searchProperty],
+        deckSearchInput.value
+      ) >= similarityRequirement
+    ) {
+      indexVar = i;
+      cardFound = true;
+      break;
+    }
+  }
+  return [cardFound, indexVar];
+};
+
+const showFoundCardSide = async(indexVar: number, sideToDisplay: string)=>{
+  let searchProperty = sideToDisplay === 'Back' ? 'cardBack' : 'cardFront';
+  cardsListIndex.value = indexVar;
+  cardSide.value = sideToDisplay;
+  cardPrompt.value =
+    props.emittedObject.cards[cardsListIndex.value][searchProperty];
+  deckSearchInput.value = '';
+  numberSearchInput.value = cardsListIndex.value + 1;
+};
+
+const numberSearch = async() => {
+  const numberInput = numberSearchInput.value;
+  if (numberInput > 0 && numberInput <= props.emittedObject.cards?.length) {
+    cardsListIndex.value = numberInput - 1;
+    if (backModeOn.value) {
+      cardSide.value = 'Back';
+      cardPrompt.value =
+        props.emittedObject.cards[cardsListIndex.value].cardBack;
+    } else {
+      cardSide.value = 'Front';
+      cardPrompt.value =
+        props.emittedObject.cards[cardsListIndex.value].cardFront;
+    }
+    return;
+  } else {
+    numberSearchInput.value = cardsListIndex.value + 1;
+    showSnackBar('snackbar10');
+    return;
+  }
+};
+const populateVoiceList = () => {
+  try {
+    optionList.value = speechSynthesis.getVoices();
+  } catch (err) {
+    console.log('Error with getVoices in populateVoiceList.\n');
+  }
+};
+const shuffleArray = (array: Card[]) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+};
+const focusOnCardFrontInput = () => {
+  this.$nextTick(() => {
+    (this.$refs.frontInput as HTMLInputElement).focus();
+  });
+};
+const focusOnCardBackInput = () => {
+  this.$nextTick(() => {
+    (this.$refs.backInput as HTMLInputElement).focus();
+  });
+};
+const readCard = () => {
+  try {
+    const language = optionList.value.filter(
+      (item) => item.name === selectedLanguage.value
+    );
+    let utterance = new SpeechSynthesisUtterance(cardPrompt.value);
+    utterance.voice = language[0] as SpeechSynthesisVoice;
+    speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.log('Error with speechSynthesis for readCard.\n');
+  }
+};
+const resetSpeechInput = () => {
+  isListeningForSpeech.value = false;
+  speechInputResult.value = '';
+  speechScore.value = 0;
+};
+const editDistance = (s1: string, s2: string) => {
+  s1 = s1.toLowerCase();
+  s2 = s2.toLowerCase();
+
+  var costs = new Array();
+  for (var i = 0; i <= s1.length; i++) {
+    var lastValue = i;
+    for (var j = 0; j <= s2.length; j++) {
+      if (i == 0) costs[j] = j;
+      else {
+        if (j > 0) {
+          var newValue = costs[j - 1];
+          if (s1.charAt(i - 1) != s2.charAt(j - 1))
+            newValue =
+              Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+          costs[j - 1] = lastValue;
+          lastValue = newValue;
+        }
+      }
+    }
+    if (i > 0) costs[s2.length] = lastValue;
+  }
+  return costs[s2.length];
+};
+const calculateSimilarity = (s1: string, s2: string) => {
+  var longer = s1;
+  var shorter = s2;
+  if (s1.length < s2.length) {
+    longer = s2;
+    shorter = s1;
+  }
+  var longerLength = longer.length;
+  if (longerLength == 0) {
+    return 1.0;
+  }
+  return (longerLength - editDistance(longer, shorter)) / longerLength;
+};
+const calculateSpeechScore = () => {
+  const similarityResult = calculateSimilarity(
+    cardPrompt.value,
+    speechInputResult.value
+  );
+  speechScore.value = similarityResult * 100;
+};
+const getSpeechInput = () => {
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+
+  const language = optionList.value.filter(
+    (item) => item.name === selectedLanguage.value
+  );
+  if (language[0]) {
+    recognition.lang = language[0].lang ? language[0].lang : 'en-US';
+  } else {
+    recognition.lang = 'en-US';
+  }
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+  isListeningForSpeech.value = true;
+
+  recognition.onspeechend = () => {
+    recognition.stop();
+    isListeningForSpeech.value = false;
+  };
+
+  recognition.onresult = (event: { results: any }) => {
+    const speechInputResult = event.results[0][0].transcript;
+    speechInputResult.value = speechInputResult;
+    calculateSpeechScore();
+    setTimeout(() => resetSpeechInput(), 2000);
+  };
+  recognition.onnomatch = (event: {}) => {
+    console.log("I didn't recognize that word.");
+    console.log('event: ', event);
+    recognition.stop();
+    resetSpeechInput();
+  };
+  recognition.onerror = (event: { error: any }) => {
+    console.log(`Error occurred in recognition: ${event.error}`);
+    recognition.stop();
+    resetSpeechInput();
+  };
+};
+const flipCard = () => {
+  if (
+    props.emittedObject.cards?.length === 0 &&
+    !addCardBack.value &&
+    !addCardFront.value
+  ) {
+    showSnackBar('snackbar2');
+    return;
+  }
+  if (addCardFront.value) {
+    cardSide.value = 'Back';
+    addCardBack.value = true;
+    addCardFront.value = false;
+    focusOnCardBackInput();
+    return;
+  }
+  if (addCardBack.value) {
+    cardSide.value = 'Front';
+    addCardBack.value = false;
+    addCardFront.value = true;
+    focusOnCardFrontInput();
+    return;
+  }
+  if (cardSide.value === 'Front') {
+    cardSide.value = 'Back';
+    cardPrompt.value =
+      props.emittedObject.cards[cardsListIndex.value].cardBack;
+  } else {
+    cardSide.value = 'Front';
+    cardPrompt.value =
+      props.emittedObject.cards[cardsListIndex.value].cardFront;
+  }
+};
+const addCard = () => {
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+    addCardBack.value = true;
+  } else {
+    cardSide.value = 'Front';
+    addCardFront.value = true;
+  }
+};
+const abortAddCard = () => {
+  addCardFront.value = false;
+  addCardBack.value = false;
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+  } else {
+    cardSide.value = 'Front';
+  }
+  cardFrontInput.value = '';
+  cardBackInput.value = '';
+  if (props.emittedObject.cards?.length === 0) {
+    return;
+  } else {
+    if (backModeOn.value) {
+      cardPrompt.value =
+        props.emittedObject.cards[cardsListIndex.value].cardBack;
+    } else {
+      cardPrompt.value =
+        props.emittedObject.cards[cardsListIndex.value].cardFront;
+    }
+    cardId.value = props.emittedObject.cards[cardsListIndex.value]._id;
+    return;
+  }
+};
+const abortEditCard = () => {
+  editCardButtonPressed.value = false;
+  editCardFront.value = false;
+  editCardBack.value = false;
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+  } else {
+    cardSide.value = 'Front';
+  }
+  cardFrontInput.value = '';
+  cardBackInput.value = '';
+  if (props.emittedObject.cards?.length === 0) {
+    return;
+  } else {
+    if (backModeOn.value) {
+      cardPrompt.value =
+        props.emittedObject.cards[cardsListIndex.value].cardBack;
+    } else {
+      cardPrompt.value =
+        props.emittedObject.cards[cardsListIndex.value].cardFront;
+    }
+    cardId.value = props.emittedObject.cards[cardsListIndex.value]._id;
+    return;
+  }
+};
+const submitCard = async() => {
+  if (cardFrontInput.value == '' || cardBackInput.value == '') {
+    abortAddCard();
+    showSnackBar('snackbar5');
+    return;
+  }
+  const response = await axios.post(
+    url + props.emittedObject._id + '/cards/' + cardsListIndex.value,
+    { cardFront: cardFrontInput.value, cardBack: cardBackInput.value }
+  );
+  if (response.status !== 201) {
+    console.log('error: ', response);
+  }
+  // props.emittedObject.cards = response.data.cards;
+  const updatedDeck = updateAndEmitDeck({
+    cards: response.data.cards,
+  });
+
+  addCardFront.value = false;
+  addCardBack.value = false;
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+  } else {
+    cardSide.value = 'Front';
+  }
+  cardFrontInput.value = '';
+  cardBackInput.value = '';
+  if (updatedDeck.cards?.length - cardsListIndex.value > 1) {
+    cardsListIndex.value += 1;
+  }
+  if (backModeOn.value) {
+    cardPrompt.value = updatedDeck.cards[cardsListIndex.value].cardBack;
+  } else {
+    cardPrompt.value = updatedDeck.cards[cardsListIndex.value].cardFront;
+  }
+  cardId.value = updatedDeck.cards[cardsListIndex.value]._id;
+  numberSearchInput.value = cardsListIndex.value + 1;
+};
+const submitEditedCardFront = () => {
+  if (cardFrontInput.value == '') {
+    abortEditCard();
+    showSnackBar('snackbar5');
+    return;
+  }
+  const response = await axios.put(
+    url +
+      props.emittedObject._id +
+      '/cards/' +
+      'front/' +
+      cardId.value +
+      '/' +
+      cardsListIndex.value,
+    {
+      cardFront: cardFrontInput.value,
+      cardBack: props.emittedObject.cards[cardsListIndex.value].cardBack,
+    }
+  );
+  if (response.status !== 201) {
+    console.log('error: ', response);
+  }
+  // props.emittedObject.cards = response.data.cards;
+  const updatedDeck = updateAndEmitDeck({
+    cards: response.data.cards,
+  });
+
+  editCardFront.value = false;
+  editCardButtonPressed.value = false;
+  cardFrontInput.value = '';
+  cardPrompt.value = updatedDeck.cards[cardsListIndex.value].cardFront;
+};
+const updateAndEmitDeck = ({
+  _id = null,
+  deckName = null as string | null,
+  cards = null,
+}) => {
+  const updatedDeckObject = JSON.parse(JSON.stringify(props.emittedObject));
+  updatedDeckObject._id = _id === null ? updatedDeckObject._id : _id;
+  updatedDeckObject.deckName =
+    deckName === null ? updatedDeckObject.deckName : deckName;
+  updatedDeckObject.cards =
+    cards === null ? updatedDeckObject.cards : cards;
+  this.$emit('emitDeck', updatedDeckObject);
+  return updatedDeckObject;
+};
+const submitEditedCardBack = async()=> {
+  if (cardBackInput.value == '') {
+    abortEditCard();
+    showSnackBar('snackbar5');
+    return;
+  }
+  const response = await axios.put(
+    url +
+      props.emittedObject._id +
+      '/cards/' +
+      'back/' +
+      cardId.value +
+      '/' +
+      cardsListIndex.value,
+    {
+      cardFront: props.emittedObject.cards[cardsListIndex.value].cardFront,
+      cardBack: cardBackInput.value,
+    }
+  );
+  if (response.status !== 201) {
+    console.log('error: ', response);
+  }
+  // props.emittedObject.cards = response.data.cards;
+  const updatedDeck = updateAndEmitDeck({
+    cards: response.data.cards,
+  });
+
+  editCardBack.value = false;
+  editCardButtonPressed.value = false;
+  cardBackInput.value = '';
+  cardPrompt.value = updatedDeck.cards[cardsListIndex.value].cardBack;
+};
+const updateCardIndex = (indexToAdd: number) => {
+  if (props.emittedObject.cards?.length === 0) {
+    showSnackBar('snackbar3');
+    return;
+  }
+  if (props.emittedObject.cards?.length === 1) {
+    showSnackBar('snackbar1');
+    return;
+  }
+  if (indexToAdd + cardsListIndex.value < 0) {
+    cardsListIndex.value = props.emittedObject.cards?.length - 1;
+  } else if (
+    indexToAdd + cardsListIndex.value >
+    props.emittedObject.cards?.length - 1
+  ) {
+    cardsListIndex.value = 0;
+  } else {
+    cardsListIndex.value = indexToAdd + cardsListIndex.value;
+  }
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+    cardPrompt.value =
+      props.emittedObject.cards[cardsListIndex.value].cardBack;
+  } else {
+    cardSide.value = 'Front';
+    cardPrompt.value =
+      props.emittedObject.cards[cardsListIndex.value].cardFront;
+  }
+  cardId.value = props.emittedObject.cards[cardsListIndex.value]._id;
+  numberSearchInput.value = cardsListIndex.value + 1;
+};
+const editCardPressed = () => {
+  if (deckIsShuffled.value) {
+    showSnackBar('snackbar9');
+    return;
+  }
+  if (props.emittedObject.cards?.length === 0) {
+    showSnackBar('snackbar8');
+    return;
+  } else {
+    editCardButtonPressed.value = true;
+    if (cardSide.value === 'Front') {
+      editCardFront.value = true;
+    }
+    if (cardSide.value === 'Back') {
+      editCardBack.value = true;
+    }
+    return;
+  }
+};
+const deleteCardPressed = () => {
+  if (deckIsShuffled.value) {
+    showSnackBar('snackbar9');
+    return;
+  }
+  if (props.emittedObject.cards?.length === 0) {
+    showSnackBar('snackbar6');
+    return;
+  } else {
+    deleteCardButtonPressed.value = true;
+    return;
+  }
+},
+const deleteCard = async() => {
+  deleteCardButtonPressed.value = false;
+  await axios.delete(
+    url + props.emittedObject._id + '/cards/' + cardId.value
+  );
+  // props.emittedObject.cards.splice(cardsListIndex.value, 1);
+  const updatedDeckObject = JSON.parse(JSON.stringify(props.emittedObject));
+  updatedDeckObject.cards.splice(cardsListIndex.value, 1);
+  this.$emit('emitDeck', updatedDeckObject);
+
+  if (updatedDeckObject.cards?.length - 1 >= 0) {
+    cardsListIndex.value =
+      cardsListIndex.value === 0 ? 0 : cardsListIndex.value - 1;
+    cardId.value = updatedDeckObject.cards[cardsListIndex.value]._id;
+    if (backModeOn.value) {
+      cardSide.value = 'Back';
+      cardPrompt.value =
+        updatedDeckObject.cards[cardsListIndex.value].cardBack;
+    } else {
+      cardSide.value = 'Front';
+      cardPrompt.value =
+        updatedDeckObject.cards[cardsListIndex.value].cardFront;
+    }
+  } else {
+    cardPrompt.value =
+      "Please add a card by clicking the 'Add Card' button below.";
+  }
+  numberSearchInput.value = cardsListIndex.value + 1;
+};
+const doNotDeleteCard = async () => {
+  deleteCardButtonPressed.value = false;
+};
+const goBackToDecks = () => {
+  localStorage.removeItem('emittedObject._id');
+  //advance route back to the Welcome Page
+  router.push({ path: '/welcome' });
+};
+// because I am shuffling the emittedObject.cards array, the shuffling is only temporary. The database is not changed in any way.
+const shuffleDeck = () => {
+  if (props.emittedObject.cards?.length === 0) {
+    showSnackBar('snackbar3');
+    return;
+  }
+  if (props.emittedObject.cards?.length === 1) {
+    showSnackBar('snackbar1');
+    return;
+  }
+  shuffleArray(props.emittedObject.cards);
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+    cardPrompt.value =
+      props.emittedObject.cards[cardsListIndex.value].cardBack;
+  } else {
+    cardSide.value = 'Front';
+    cardPrompt.value =
+      props.emittedObject.cards[cardsListIndex.value].cardFront;
+  }
+  cardId.value = props.emittedObject.cards[cardsListIndex.value].cardId;
+  deckIsShuffled.value = true;
+};
+const unShuffleDeck = async () => {
+  // props.emittedObject._id = localStorage.getItem("emittedObject._id");
+  const localStorageId = localStorage.getItem('emittedObject._id');
+  const responseFromDecks = await axios.get(
+    url + '/deck/' + localStorageId
+  );
+  // props.emittedObject = responseFromDecks.data;
+  const updatedDeck = updateAndEmitDeck(responseFromDecks.data);
+
+  if (backModeOn.value) {
+    cardSide.value = 'Back';
+    cardPrompt.value = updatedDeck.cards[cardsListIndex.value].cardBack;
+  } else {
+    cardSide.value = 'Front';
+    cardPrompt.value = updatedDeck.cards[cardsListIndex.value].cardFront;
+  }
+  cardId.value = updatedDeck.cards[cardsListIndex.value]._id;
+  deckIsShuffled.value = false;
+};
+const deleteDeckPressed = () => {
+  deleteDeckButtonPressed.value = true;
+};
+const deleteDeck = async() =>{
+  deleteDeckButtonPressed.value = false;
+  await axios.delete(url + props.emittedObject._id + '/deckName');
+  goBackToDecks();
+};
+const doNotDeleteDeck = async() => {
+  deleteDeckButtonPressed.value = false;
+};
+const editDeckName = () => {
+  editDeckNameSelected.value = true;
+};
+const submitEditedDeckName = async () => {
+  if (editDeckNameInput.value == '') {
+    editDeckNameSelected.value = false;
+    showSnackBar('snackbar4');
+    return;
+  }
+  // props.emittedObject.deckName = editDeckNameInput.value;
+  updateAndEmitDeck({ deckName: editDeckNameInput.value });
+
+  const response = await axios.put(
+    url + props.emittedObject._id + '/deckName',
+    { deckName: editDeckNameInput.value }
+  );
+  if (response.status !== 201) {
+    console.log('error: ', response);
+  }
+  editDeckNameInput.value = '';
+  editDeckNameSelected.value = false;
+};
+
+const showSnackBar = (snackBarNum: string) => {
+  // Get the snackbar DIV
+  let snackBarElement = document.getElementById(snackBarNum);
+  // Add the "show" class to DIV
+  if (snackBarElement != null) {
+    snackBarElement.classList.add('show');
+  }
+  // After 3 seconds, remove the show class from DIV
+  setTimeout(function () {
+    if (snackBarElement != null) {
+      snackBarElement.classList.remove('show');
+    }
+  }, 3000);
+};
+const localDarkMode = localStorage.getItem('darkModeOn');
+if (localDarkMode === 'true') {
+  darkModeOn.value = true;
+} else if (localDarkMode === 'false') {
+  darkModeOn.value = false;
+}
+if (darkModeOn.value == undefined || darkModeOn.value == false) {
+  document.documentElement.style.setProperty('--primary-color', '#8C1A62');
+  document.documentElement.style.setProperty(
+    '--secondary-color',
+    '#81175a'
+  );
+  document.documentElement.style.setProperty('--tertiary-color', '#EEE1D6');
+  document.documentElement.style.setProperty(
+    '--quaternary-color',
+    '#ddd1c7'
+  );
+} else if (darkModeOn.value == true) {
+  document.documentElement.style.setProperty('--primary-color', '#325573');
+  document.documentElement.style.setProperty(
+    '--secondary-color',
+    '#2d4c68'
+  );
+  document.documentElement.style.setProperty('--tertiary-color', '#B6D6F2');
+  document.documentElement.style.setProperty(
+    '--quaternary-color',
+    '#517EA6'
+  );
+}
+
+populateVoiceList();
+try {
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = populateVoiceList;
+  }
+} catch (err) {
+  console.log('Error with speechSynthesis in created.\n');
+}
+
+if (props.emittedObject._id != undefined) {
+  localStorage.setItem('emittedObject._id', props.emittedObject._id);
+}
+
+const objectId =
+  props.emittedObject._id == undefined
+    ? localStorage.getItem('emittedObject._id')
+    : props.emittedObject._id;
+
+if (objectId == undefined) {
+  goBackToDecks();
+  return;
+}
+
+const responseFromDecks = await axios.get(url + '/deck/' + objectId);
+// props.emittedObject = responseFromDecks.data;
+const updatedDeck = updateAndEmitDeck(responseFromDecks.data);
+
+if (updatedDeck.cards != undefined && updatedDeck.cards != null) {
+  if (updatedDeck.cards?.length != 0) {
+    cardPrompt.value = updatedDeck.cards[0].cardFront;
+    cardId.value = updatedDeck.cards[0]._id;
+  }
+}
+deckIsShuffled.value = false;
 </script>
 
 <style scoped>
